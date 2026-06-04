@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Dark Market</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+  background: linear-gradient(135deg, #05070f, #0a0f1c, #05070f);
+}
+
+.glow:hover {
+  box-shadow: 0 0 25px rgba(168,85,247,0.7);
+}
+
+.fade {
+  animation: fade 0.5s ease forwards;
+}
+
+@keyframes fade {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+input:focus {
+  box-shadow: 0 0 10px rgba(168,85,247,0.5);
+}
+</style>
+</head>
+
+<body class="text-white font-sans">
+
+<!-- LOGIN -->
+<div id="loginBox" class="fixed inset-0 flex items-center justify-center">
+
+  <div class="absolute inset-0 bg-gradient-to-br from-black via-[#0a0f1c] to-black"></div>
+
+  <div class="relative bg-white/5 backdrop-blur-xl border border-white/10 
+              p-8 rounded-3xl w-80 text-center shadow-2xl">
+
+    <h2 class="text-3xl mb-6 text-purple-400">Welcome</h2>
+
+    <input id="username" placeholder="Username"
+      class="w-full p-3 mb-3 rounded-xl bg-black/50 border border-gray-700">
+
+    <input id="password" type="password" placeholder="Password"
+      class="w-full p-3 mb-5 rounded-xl bg-black/50 border border-gray-700">
+
+    <button onclick="login()"
+      class="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-105 transition">
+      Login
+    </button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="flex justify-between p-5 border-b border-gray-800">
+  <h1 class="text-xl text-purple-500">⚡ Market</h1>
+  <div id="user">Guest</div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="grid grid-cols-4 gap-6 p-10"></div>
+
+<!-- PRODUCT PAGE -->
+<div id="productPage" class="hidden p-10">
+
+  <button onclick="goBack()" class="mb-5 text-purple-400">← Torna</button>
+
+  <div class="grid grid-cols-2 gap-10">
+
+    <!-- IMAGE -->
+    <div>
+      <img id="pImage" class="rounded-2xl shadow-lg">
+    </div>
+
+    <!-- INFO -->
+    <div>
+      <h2 id="pName" class="text-2xl mb-2"></h2>
+      <p id="pPrice" class="text-green-400 mb-4"></p>
+
+      <p class="text-gray-400 mb-6">
+        Prodotto premium con qualità elevata e design moderno.
+      </p>
+
+      <button class="bg-purple-600 px-5 py-2 rounded">Aggiungi</button>
+    </div>
+
+    <!-- REVIEWS -->
+    <div>
+      <h3 class="text-lg mb-2">⭐ Recensioni</h3>
+      <div id="reviews" class="mb-4"></div>
+
+      <input id="reviewInput" placeholder="Scrivi recensione"
+        class="w-full p-2 bg-gray-900 rounded mb-2">
+
+      <button onclick="addReview()" class="bg-purple-600 px-3 py-1 rounded">
+        Invia
+      </button>
+    </div>
+
+  </div>
+
+  <!-- CHAT -->
+  <div class="mt-10">
+    <h3 class="text-lg mb-2">💬 Chat</h3>
+
+    <div id="chat" class="bg-gray-900 p-3 h-40 overflow-y-auto mb-3 rounded"></div>
+
+    <input id="chatInput" class="w-full p-2 bg-gray-800 rounded mb-2" placeholder="Messaggio">
+
+    <button onclick="sendMessage()" class="bg-purple-600 px-3 py-1 rounded">
+      Invia
+    </button>
+  </div>
+
+</div>
+
+<script>
+const API = "http://localhost:3000";
+let currentProduct = null;
+
+// LOGIN (semplificato)
+function login(){
+  loginBox.style.display = "none";
+  user.innerText = username.value;
+  loadProducts();
+}
+
+// LOAD PRODUCTS
+async function loadProducts(){
+  const res = await fetch(API + "/products");
+  const data = await res.json();
+
+  home.innerHTML = "";
+
+  data.forEach((p,i)=>{
+    const card = document.createElement("div");
+
+    card.className="bg-[#111827] p-5 rounded-2xl glow fade";
+    card.style.animationDelay = i*0.1+"s";
+
+    card.innerHTML=`
+      <img src="https://picsum.photos/300?random=${Math.random()}" 
+           class="rounded-xl mb-3 hover:scale-105 transition">
+
+      <h2 class="text-lg font-semibold">${p.name}</h2>
+      <p class="text-green-400">€${p.price}</p>
+    `;
+
+    card.onclick = ()=>openProduct(p);
+
+    home.appendChild(card);
+  });
+}
+
+// OPEN PRODUCT
+function openProduct(p){
+  currentProduct = p;
+  home.style.display="none";
+  productPage.classList.remove("hidden");
+
+  pName.innerText = p.name;
+  pPrice.innerText = "€ " + p.price;
+  pImage.src = "https://picsum.photos/500?random=" + Math.random();
+}
+
+// BACK
+function goBack(){
+  productPage.classList.add("hidden");
+  home.style.display="grid";
+}
+
+// REVIEWS
+function addReview(){
+  const text = reviewInput.value;
+  if(!text) return;
+
+  reviews.innerHTML += `<div class="bg-gray-800 p-2 rounded mb-1">${text}</div>`;
+  reviewInput.value="";
+}
+
+// CHAT
+function sendMessage(){
+  const text = chatInput.value;
+  if(!text) return;
+
+  chat.innerHTML += `<div>👤 ${text}</div>`;
+  chatInput.value="";
+  chat.scrollTop = chat.scrollHeight;
+}
+</script>
+
+</body>
+</html>

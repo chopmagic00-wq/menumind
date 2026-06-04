@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>MenuMind AI - Smart Excel SaaS</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
+            margin: 0;
+            padding: 20px;
+        }
+        /* Schermata Login */
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .auth-container h2 { color: #107c41; margin-top: 0; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
+        .input-group input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+        
+        /* Dashboard Excel */
+        .excel-container {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .excel-header {
+            background-color: #107c41;
+            color: white;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toolbar {
+            background-color: #f8fafc;
+            padding: 10px 20px;
+            border-bottom: 1px solid #cbd5e1;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .excel-table th {
+            background-color: #f1f5f9;
+            color: #64748b;
+            padding: 10px;
+            border-bottom: 2px solid #cbd5e1;
+            border-right: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        .excel-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+        .excel-table input {
+            width: 90%;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            padding: 4px;
+        }
+        .excel-table input:focus {
+            background: #e2e8f0;
+            outline: 2px solid #107c41;
+            border-radius: 2px;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-danger { background-color: #fee2e2; color: #991b1b; }
+        .status-success { background-color: #dcfce7; color: #166534; }
+        
+        .btn {
+            background-color: #107c41;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn:hover { background-color: #0e6b37; }
+        .btn-danger { background-color: #ef4444; padding: 4px 8px; font-size: 12px; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-logout { background-color: transparent; border: 1px solid white; font-size: 12px; }
+
+        /* 🤖 STILI CHATBOT WIDGET */
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 9999;
+            font-size: 14px;
+        }
+        .chat-header {
+            background: #107c41;
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .message {
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .message.user {
+            background: #dcfce7;
+            color: #14532d;
+            align-self: flex-end;
+        }
+        .message.bot {
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            align-self: flex-start;
+            white-space: pre-line;
+        }
+        .chat-input-area {
+            border-top: 1px solid #cbd5e1;
+            padding: 10px;
+            display: flex;
+            gap: 6px;
+            background: white;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            outline: none;
+        }
+        .chat-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #107c41;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-screen" class="auth-container">
+        <h2 id="auth-title">Accedi a MenuMind AI</h2>
+        <form id="auth-form" onsubmit="gestisciAuth(event)">
+            <div class="input-group">
+                <label>Email Aziendale</label>
+                <input type="email" id="auth-email" required placeholder="chef@ristorante.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="auth-password" required placeholder="••••••••">
+            </div>
+            <button type="submit" id="btn-auth-submit" class="btn" style="width: 100%;">Accedi</button>
+            <p style="text-align: center; font-size: 13px; margin-top: 15px;">
+                <a href="#" id="auth-toggle" onclick="cambiaModalita(event)" style="color: #107c41;">Non hai un account? Registrati</a>
+            </p>
+        </form>
+    </div>
+
+    <div id="dashboard-screen" style="display: none; max-width: 1000px; margin: 0 auto;">
+        
+        <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 style="margin: 0 0 5px 0; color: #0f172a;">💳 Stato Piano & Fatturazione</h3>
+                <span id="stripe-status-badge" class="status-badge status-success">PROVA GRATUITA ATTIVA</span>
+                <span id="giorni-rimanenti-txt" style="font-size: 13px; margin-left: 10px; color: #64748b;"></span>
+            </div>
+            <div id="stripe-actions"></div>
+        </div>
+
+        <div id="stripe-paywall" style="display: none; margin: 20px auto; text-align: center; max-width: 900px; background: white; padding: 30px; border-radius: 8px; border: 1px solid #cbd5e1;">
+            <h2 style="color: #1e293b; font-size: 24px; margin-bottom: 5px;">⏳ Periodo di prova terminato!</h2>
+            <p style="color: #64748b; margin-bottom: 30px;">Sblocca istantaneamente la tua tabella e l'IA di MenuMind per tenere sotto controllo i margini del tuo ristorante.</p>
+            
+            <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+            <stripe-pricing-table 
+              pricing-table-id="prctbl_1Tdn0mFIe7UjH34vgi06e5QK" 
+              publishable-key="pk_live_51Td6E0FIe7UjH34vokWZ8a7GVqZFxGBA8kzDgxFO4yjZXUAayGkB1N5dZovzcKv9gbGwrAQ5xiwaySRym5USl4NL00lrZATrcb">
+            </stripe-pricing-table>
+        </div>
+
+        <div id="excel-app-container" class="excel-container">
+            <div class="excel-header">
+                <span>📊 MenuMind_Platform_v1.xlsx</span>
+                <div>
+                    <span id="user-display" style="font-size: 14px; margin-right: 15px;"></span>
+                    <button class="btn btn-logout" onclick="logout()">Esci</button>
+                </div>
+            </div>
+            
+            <div class="toolbar">
+                <button class="btn" onclick="aggiungiRiga()">➕ Inserisci Nuovo Piatto</button>
+                
+                <input type="file" id="file-fattura" accept="image/*,application/pdf" style="display: none;" onchange="elaboraFatturaConIA(event)">
+                <button class="btn" style="background-color: #0284c7;" onclick="document.getElementById('file-fattura').click()">🧾 Carica Fattura con IA</button>
+                
+                <span style="color: #64748b; font-size: 12px;">💡 Clicca direttamente sulle celle per modificare!</span>
+            </div>
+            
+            <div id="risposta-ai" style="margin: 10px 20px; padding: 10px; background: #f3e8ff; border-left: 4px solid #7c3aed; border-radius: 4px; display: none; font-size: 13px;"></div>
+
+            <table class="excel-table">
+                <thead>
+                    <tr>
+                        <th>Nome Piatto</th>
+                        <th>Prezzo Vendita (€)</th>
+                        <th>Costo Mat. Prima Ieri (€)</th>
+                        <th>Costo Mat. Prima Oggi (€)</th>
+                        <th>Stato Margine</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="excel-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="chat-toggle" class="chat-toggle-btn" style="display: none;" onclick="toggleChat()">💬</div>
+    <div id="chat-box" class="chat-widget" style="display: none;">
+        <div class="chat-header">
+            <span>🤖 Assistente Chef AI</span>
+            <span style="cursor: pointer;" onclick="toggleChat()">✖</span>
+        </div>
+        <div id="chat-messages" class="chat-messages">
+            <div class="message bot">Ciao Chef! Sono il tuo assistente MenuMind. Chiedimi pure analisi sui tuoi costi, ricette o margini!</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Scrivi un messaggio..." onkeypress="if(event.key === 'Enter') inviaMessaggioChat()">
+            <button class="btn" onclick="inviaMessaggioChat()">Invia</button>
+        </div>
+    </div>
+
+    <script>
+        // 🔑 CREDENZIALI SUPABASE
+        const SUPABASE_URL = "https://jgpokqpgsrlmvspkxach.supabase.co"; 
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncG9rcXBnc3JsbXZzcGt4YWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTE0NTUsImV4cCI6MjA5NTcyNzQ1NX0.S6pcXGgIwkMxunG7ULLUQau56LNJg3pBrfXuD21xAws";    
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let piatti = [];
+        let isRegistrazione = false;
+        let utenteCorrente = null;
+
+        function cambiaModalita(e) {
+            e.preventDefault();
+            isRegistrazione = !isRegistrazione;
+            document.getElementById("auth-title").innerText = isRegistrazione ? "Crea un Account Gratuito" : "Accedi a MenuMind AI";
+            document.getElementById("btn-auth-submit").innerText = isRegistrazione ? "Registrati e Inizia" : "Accedi";
+            document.getElementById("auth-toggle").innerText = isRegistrazione ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
+        }
+
+        async function gestisciAuth(e) {
+            e.preventDefault();
+            let email = document.getElementById("auth-email").value;
+            let password = document.getElementById("auth-password").value;
+            let riscontro;
+            
+            if (isRegistrazione) {
+                riscontro = await _supabase.auth.signUp({ email, password });
+                if (riscontro.error) return alert("Errore password/email: " + riscontro.error.message);
+                alert("Registrazione completata con successo! Fai pure il login.");
+                return;
+            } else {
+                riscontro = await _supabase.auth.signInWithPassword({ email, password });
+                if (riscontro.error) return alert("Accesso negato: Email o password errate!");
+            }
+
+            utenteCorrente = riscontro.data.user;
+
+            document.getElementById("auth-screen").style.display = "none";
+            document.getElementById("dashboard-screen").style.display = "block";
+            document.getElementById("chat-toggle").style.display = "flex"; 
+            document.getElementById("user-display").innerText = "👤 Ristorante: " + utenteCorrente.email;
+            
+            controllaGiorniAbbonamentoReale();
+            caricaPiattiDalDatabase();
+        }
+
+        function logout() {
+            _supabase.auth.signOut();
+            utenteCorrente = null;
+            document.getElementById("dashboard-screen").style.display = "none";
+            document.getElementById("chat-toggle").style.display = "none";
+            document.getElementById("chat-box").style.display = "none";
+            document.getElementById("auth-screen").style.display = "block";
+        }
+
+        function controllaGiorniAbbonamentoReale() {
+            let dataCreazione = new Date(utenteCorrente.created_at);
+            let dataOggi = new Date();
+            
+            let differenzaInMilliSec = dataOggi.getTime() - dataCreazione.getTime();
+            let giorniPassati = Math.floor(differenzaInMilliSec / (1000 * 3600 * 24));
+            let giorniRimanenti = 7 - giorniPassati;
+
+            let badge = document.getElementById("stripe-status-badge");
+            let azioniStripe = document.getElementById("stripe-actions");
+            let paywall = document.getElementById("stripe-paywall");
+            let appPiatti = document.getElementById("excel-app-container");
+
+            // Controllo di sicurezza sull'esistenza dell'elemento grafico prima di scrivere
+            let txtGiorni = document.getElementById("giorni-rimanenti-txt");
+
+            if (giorniRimanenti > 0) {
+                badge.className = "status-badge status-success";
+                badge.innerText = "PROVA GRATUITA ATTIVA";
+                if(txtGiorni) txtGiorni.innerText = `Ti rimangono ${giorniRimanenti} giorni di prova gratuita automatica.`;
+                azioniStripe.innerHTML = `<span style="font-size:13px; color:#64748b;">Usa liberamente la piattaforma</span>`;
+                
+                paywall.style.display = "none";
+                appPiatti.style.display = "block";
+            } else {
+                badge.className = "status-badge status-danger";
+                badge.innerText = "PROVA SCADUTA / APP BLOCCATA";
+                if(txtGiorni) txtGiorni.innerText = `Il tuo periodo di prova gratuita di una settimana è terminato.`;
+                azioniStripe.innerHTML = `<span style="font-size:13px; color:#ef4444; font-weight:bold;">Abbonamento Richiesto</span>`;
+                
+                appPiatti.style.display = "none"; 
+                paywall.style.display = "block";  
+            }
+        }
+
+        async function caricaPiattiDalDatabase() {
+            let { data, error } = await _supabase
+                .from('piatti')
+                .select('*')
+                .order('created_at', { ascending: true });
+
+            if (error) {
+                console.error("Errore nel caricamento dati:", error.message);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                piatti = data;
+            } else {
+                let defaultDati = [
+                    { user_id: utenteCorrente.id, nome: "Tagliata di Manzo", vendita: 18.00, costo_ieri: 12.00, costo_oggi: 12.00 },
+                    { user_id: utenteCorrente.id, nome: "Spaghetti alla Carbonara", vendita: 12.00, costo_ieri: 3.20, costo_oggi: 3.20 }
+                ];
+                await _supabase.from('piatti').insert(defaultDati);
+                let ricarica = await _supabase.from('piatti').select('*');
+                piatti = ricarica.data || [];
+            }
+            renderTabella();
+        }
+
+        function renderTabella() {
+            let tbody = document.getElementById("excel-body");
+            tbody.innerHTML = "";
+
+            piatti.forEach((piatto) => {
+                let statoHtml = piatto.costo_oggi > piatto.costo_ieri 
+                    ? `<span class="status-badge status-danger">⚠️ ALLARME PREZZI</span>` 
+                    : `<span class="status-badge status-success">✅ OTTIMALE</span>`;
+
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><input type="text" value="${piatto.nome}" onchange="aggiornaDato(${piatto.id}, 'nome', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${piatto.vendita}" onchange="aggiornaDato(${piatto.id}, 'vendita', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${piatto.costo_ieri}" onchange="aggiornaDato(${piatto.id}, 'costo_ieri', this.value)"></td>
+                    <td><input type="number" step="0.1" value="${piatto.costo_oggi}" onchange="aggiornaDato(${piatto.id}, 'costo_oggi', this.value)"></td>
+                    <td>${statoHtml}</td>
+                    <td><button class="btn btn-danger" onclick="eliminaRiga(${piatto.id})">Elimina</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function aggiungiRiga() {
+            const nuovoPiatto = {
+                user_id: utenteCorrente.id,
+                nome: "Nuovo Piatto",
+                vendita: 10.00,
+                costo_ieri: 3.00,
+                costo_oggi: 3.00
+            };
+
+            let { data, error } = await _supabase
+                .from('piatti')
+                .insert([nuovoPiatto])
+                .select();
+
+            if (error) return alert("Errore nel salvataggio su database: " + error.message);
+
+            piatti.push(data[0]);
+            renderTabella();
+        }
+
+        async function aggiornaDato(id, campo, valore) {
+            let piatto = piatti.find(p => p.id === id);
+            if (piatto) {
+                let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
+                piatto[campo] = valoreFormattato;
+
+                let { error } = await _supabase
+                    .from('piatti')
+                    .update({ [campo]: valoreFormattato })
+                    .eq('id', id);
+
+                if (error) console.error("Errore di sincronizzazione:", error.message);
+                renderTabella();
+            }
+        }
+
+        async function eliminaRiga(id) {
+            let { error } = await _supabase
+                .from('piatti')
+                .delete()
+                .eq('id', id);
+
+            if (error) return alert("Errore durante l'eliminazione: " + error.message);
+
+            piatti = piatti.filter(p => p.id !== id);
+            renderTabella();
+        }
+
+        function convertiInBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    let stringaBase64 = reader.result.split(',')[1];
+                    resolve(stringaBase64);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        async function elaboraFatturaConIA(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            let contenitoreIA = document.getElementById("risposta-ai");
+            contenitoreIA.style.display = "block";
+            contenitoreIA.innerHTML = "🤖 L'IA di Gemini sta leggendo la fattura reale e calcolando i costi...";
+
+            try {
+                const fileBase64 = await convertiInBase64(file);
+                const listaNomiMenu = piatti.map(p => p.nome);
+
+                const urlEdgeFunction = "https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura";
+                const response = await fetch(urlEdgeFunction, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        modalita: "fattura",
+                        fileData: fileBase64,
+                        fileType: file.type,
+                        listaPiattiMenu: listaNomiMenu
+                    })
+                });
+
+                const risultato = await response.json();
+
+                if (!risultato.successo) {
+                    throw new Error(risultato.error || "Errore sconosciuto nella Edge Function");
+                }
+
+                const datiGemini = risultato.dati;
+                let logFattura = "<strong>Fattura elaborata con successo! Ingredienti estratti:</strong><br>";
+
+                if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
+                    for (let ingr of datiGemini.ingredienti_estratti) {
+                        logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) $\rightarrow$ Associato a: <em>${ingr.piatto_associato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
+
+                        let piattoTrovato = piatti.find(p => p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
+                        
+                        if (piattoTrovato) {
+                            let vecchioCostoOggi = piattoTrovato.costo_oggi;
+                            piattoTrovato.costo_ieri = vecchioCostoOggi;
+                            piattoTrovato.costo_oggi = ingr.prezzo_unitario;
+
+                            await _supabase.from('piatti').update({
+                                costo_ieri: vecchioCostoOggi,
+                                costo_oggi: ingr.prezzo_unitario
+                            }).eq('id', piattoTrovato.id);
+                        }
+                    }
+                } else {
+                    logFattura += "Nessun ingrediente associato ai piatti del menu trovato.";
+                }
+
+                contenitoreIA.innerHTML = logFattura;
+                renderTabella();
+
+            } catch (err) {
+                console.error(err);
+                contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore durante l'elaborazione dell'IA: ${err.message}<br><small>Verifica che la chiave GEMINI_API_KEY sia impostata correttamente nel Vault di Supabase.</small></span>`;
+            }
+        }
+
+        function toggleChat() {
+            let chatBox = document.getElementById("chat-box");
+            chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
+        }
+
+        async function inviaMessaggioChat() {
+            let inputField = document.getElementById("chat-input");
+            let messaggioTesto = inputField.value.trim();
+            if (!messaggioTesto) return;
+
+            let chatMessages = document.getElementById("chat-messages");
+
+            let userDiv = document.createElement("div");
+            userDiv.className = "message user";
+            userDiv.innerText = messaggioTesto;
+            chatMessages.appendChild(userDiv);
+            inputField.value = "";
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            let botLoadingDiv = document.createElement("div");
+            botLoadingDiv.className = "message bot";
+            botLoadingDiv.innerText = "🤖 Sta digitando...";
+            chatMessages.appendChild(botLoadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const urlEdgeFunction = "https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura";
+                
+                const response = await fetch(urlEdgeFunction, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        modalita: "chat",
+                        listaPiattiMenu: piatti, 
+                        messaggioChat: messaggioTesto
+                    })
+                });
+
+                const risultato = await response.json();
+                
+                if (chatMessages.contains(botLoadingDiv)) {
+                    chatMessages.removeChild(botLoadingDiv);
+                }
+
+                let botDiv = document.createElement("div");
+                botDiv.className = "message bot";
+
+                if (risultato.successo === true || risultato.risposta) {
+                    botDiv.innerText = resultado.risposta;
+                } else {
+                    botDiv.innerText = "❌ Errore IA: " + (risultato.error || "Impossibile comunicare con Gemini.");
+                }
+
+                chatMessages.appendChild(botDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            } catch (err) {
+                if (chatMessages.contains(botLoadingDiv)) chatMessages.removeChild(botLoadingDiv);
+                let botDiv = document.createElement("div");
+                botDiv.className = "message bot";
+                botDiv.innerText = "❌ Errore di connessione: " + err.message;
+                chatMessages.appendChild(botDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>
