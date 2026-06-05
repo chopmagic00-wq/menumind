@@ -354,8 +354,6 @@
             let azioniStripe = document.getElementById("stripe-actions");
             let paywall = document.getElementById("stripe-paywall");
             let appPiatti = document.getElementById("excel-app-container");
-
-            // Controllo di sicurezza sull'esistenza dell'elemento grafico prima di scrivere
             let txtGiorni = document.getElementById("giorni-rimanenti-txt");
 
             if (giorniRimanenti > 0) {
@@ -519,7 +517,7 @@
 
                 if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
                     for (let ingr of datiGemini.ingredienti_estratti) {
-                        logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) $\rightarrow$ Associato a: <em>${ingr.piatto_associato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
+                        logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) → Associato a: <em>${ingr.piatto_associato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
 
                         let piattoTrovato = piatti.find(p => p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
                         
@@ -594,8 +592,9 @@
                 let botDiv = document.createElement("div");
                 botDiv.className = "message bot";
 
+                // Fix bug "resultado" -> "risultato"
                 if (risultato.successo === true || risultato.risposta) {
-                    botDiv.innerText = resultado.risposta;
+                    botDiv.innerText = risultato.risposta;
                 } else {
                     botDiv.innerText = "❌ Errore IA: " + (risultato.error || "Impossibile comunicare con Gemini.");
                 }
