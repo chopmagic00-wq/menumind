@@ -634,8 +634,7 @@
                 reader.onerror = error => reject(error);
             });
         }
-
-      async function elaboraFatturaConIA(event) {
+async function elaboraFatturaConIA(event) {
             const file = event.target.files[0];
             if (!file) return;
 
