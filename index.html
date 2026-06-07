@@ -24,7 +24,7 @@
             font-size: 14px;
             font-weight: bold;
             border-radius: 6px;
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto 20px auto;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
@@ -49,7 +49,7 @@
             border: 1px solid #cbd5e1;
             border-radius: 4px;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         .excel-header {
@@ -122,6 +122,47 @@
         .btn-danger { background-color: #ef4444; padding: 4px 8px; font-size: 12px; }
         .btn-danger:hover { background-color: #dc2626; }
         .btn-logout { background-color: transparent; border: 1px solid white; font-size: 12px; }
+        
+        /* Bottoncino Ricettario */
+        .btn-ricetta {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 0 5px;
+            color: #107c41;
+        }
+        .btn-ricetta:hover { transform: scale(1.2); }
+
+        /* 📋 FINESTRA MODAL PER INGREDIENTI */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .modal-header h3 { margin: 0; color: #107c41; }
+        .close-modal { font-size: 24px; cursor: pointer; color: #64748b; }
+        .close-modal:hover { color: #1e293b; }
 
         /* 🤖 STILI CHATBOT WIDGET */
         .chat-widget {
@@ -244,7 +285,7 @@
         </form>
     </div>
 
-    <div id="dashboard-screen" style="display: none; max-width: 1000px; margin: 0 auto;">
+    <div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
         
         <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
             <div>
@@ -281,7 +322,7 @@
                 <input type="file" id="file-fattura" accept="image/*,application/pdf" style="display: none;" onchange="elaboraFatturaConIA(event)">
                 <button class="btn" style="background-color: #0284c7;" onclick="document.getElementById('file-fattura').click()">🧾 Carica Fattura con IA</button>
                 
-                <span style="color: #64748b; font-size: 12px;">💡 Clicca direttamente sulle celle per modificare!</span>
+                <span style="color: #64748b; font-size: 12px;">💡 Clicca su 📖 vicino al nome per inserire ingredienti e grammature!</span>
             </div>
             
             <div id="risposta-ai" style="margin: 10px 20px; padding: 10px; background: #f3e8ff; border-left: 4px solid #7c3aed; border-radius: 4px; display: none; font-size: 13px;"></div>
@@ -302,6 +343,32 @@
         </div>
     </div>
 
+    <div id="ricetta-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-titolo-piatto">Ingredienti e Grammature</h3>
+                <span class="close-modal" onclick="chiudiModalRicetta()">&times;</span>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <button class="btn" style="font-size:12px; padding:5px 10px;" onclick="aggiungiIngredienteRiga()">➕ Aggiungi Ingrediente</button>
+            </div>
+            <table class="excel-table" style="margin-bottom: 20px;">
+                <thead>
+                    <tr>
+                        <th>Ingrediente</th>
+                        <th>Peso (Grammi / g)</th>
+                        <th>Costo al Grammo (€/g)</th>
+                        <th>Azioni</th>
+                    </tr>
+                </thead>
+                <tbody id="ricetta-body"></tbody>
+            </table>
+            <div style="text-align: right;">
+                <button class="btn" onclick="salvaRicettaNelDatabase()">💾 Salva Ricetta</button>
+            </div>
+        </div>
+    </div>
+
     <div id="chat-toggle" class="chat-toggle-btn" style="display: none;" onclick="toggleChat()">💬</div>
     <div id="chat-box" class="chat-widget" style="display: none;">
         <div class="chat-header">
@@ -318,7 +385,6 @@
     </div>
 
     <script>
-        // 🔑 CREDENZIALI SUPABASE
         const SUPABASE_URL = "https://jgpokqpgsrlmvspkxach.supabase.co"; 
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncG9rcXBnc3JsbXZzcGt4YWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTE0NTUsImV4cCI6MjA5NTcyNzQ1NX0.S6pcXGgIwkMxunG7ULLUQau56LNJg3pBrfXuD21xAws";    
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -326,6 +392,10 @@
         let piatti = [];
         let isRegistrazione = false;
         let utenteCorrente = null;
+        
+        // Variabili temporanee per gestire la ricetta aperta nel Modal
+        let piattoInModificaId = null;
+        let ingredientiTemporanei = [];
 
         function cambiaModalita(e) {
             e.preventDefault();
@@ -415,17 +485,7 @@
                 return;
             }
 
-            if (data && data.length > 0) {
-                piatti = data;
-            } else {
-                let defaultDati = [
-                    { user_id: utenteCorrente.id, nome: "Tagliata di Manzo", vendita: 18.00, costo_ieri: 12.00, costo_oggi: 12.00 },
-                    { user_id: utenteCorrente.id, nome: "Spaghetti alla Carbonara", vendita: 12.00, costo_ieri: 3.20, costo_oggi: 3.20 }
-                ];
-                await _supabase.from('piatti').insert(defaultDati);
-                let ricarica = await _supabase.from('piatti').select('*');
-                piatti = ricarica.data || [];
-            }
+            piatti = data || [];
             renderTabella();
         }
 
@@ -440,7 +500,10 @@
 
                 let tr = document.createElement("tr");
                 tr.innerHTML = `
-                    <td><input type="text" value="${piatto.nome}" onchange="aggiornaDato(${piatto.id}, 'nome', this.value)"></td>
+                    <td>
+                        <button class="btn-ricetta" onclick="apriModalRicetta(${piatto.id})" title="Vedi ingredienti e grammature">📖</button>
+                        <input type="text" value="${piatto.nome}" style="width:75%; display:inline-block;" onchange="aggiornaDato(${piatto.id}, 'nome', this.value)">
+                    </td>
                     <td><input type="number" step="0.1" value="${piatto.vendita}" onchange="aggiornaDato(${piatto.id}, 'vendita', this.value)"></td>
                     <td><input type="number" step="0.1" value="${piatto.costo_ieri}" onchange="aggiornaDato(${piatto.id}, 'costo_ieri', this.value)"></td>
                     <td><input type="number" step="0.1" value="${piatto.costo_oggi}" onchange="aggiornaDato(${piatto.id}, 'costo_oggi', this.value)"></td>
@@ -457,7 +520,8 @@
                 nome: "Nuovo Piatto",
                 vendita: 10.00,
                 costo_ieri: 3.00,
-                costo_oggi: 3.00
+                costo_oggi: 3.00,
+                ricetta: "[]" // Inizializziamo il testo del ricettario vuoto
             };
 
             let { data, error } = await _supabase
@@ -499,14 +563,120 @@
             renderTabella();
         }
 
+        // ==========================================
+        // 📖 FUNZIONI GESTIONE TABELLA INGREDIENTI
+        // ==========================================
+        function apriModalRicetta(id) {
+            piattoInModificaId = id;
+            let piatto = piatti.find(p => p.id === id);
+            if (!piatto) return;
+
+            document.getElementById("modal-titolo-piatto").innerText = `Ingredienti & Grammature: ${piatto.nome}`;
+            
+            // Estraiamo la ricetta (se c'è qualcosa salvato, altrimenti array vuoto)
+            try {
+                ingredientiTemporanei = piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
+            } catch(e) {
+                ingredientiTemporanei = [];
+            }
+
+            renderTabellaIngredienti();
+            document.getElementById("ricetta-modal").style.display = "flex";
+        }
+
+        function chiudiModalRicetta() {
+            document.getElementById("ricetta-modal").style.display = "none";
+            piattoInModificaId = null;
+        }
+
+        function renderTabellaIngredienti() {
+            let tbody = document.getElementById("ricetta-body");
+            tbody.innerHTML = "";
+
+            if (ingredientiTemporanei.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito. Clicca su Aggiungi!</td></tr>`;
+                return;
+            }
+
+            ingredientiTemporanei.forEach((ingr, index) => {
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td><input type="text" value="${ingr.nome || ''}" placeholder="Esempio: Guanciale" onchange="aggiornaIngredienteDato(${index}, 'nome', this.value)"></td>
+                    <td><input type="number" value="${ingr.grammi || 0}" placeholder="Grammi" onchange="aggiornaIngredienteDato(${index}, 'grammi', this.value)"></td>
+                    <td><input type="number" step="0.001" value="${ingr.costo_grammo || 0}" placeholder="Costo €/g" onchange="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)"></td>
+                    <td><button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function aggiungiIngredienteRiga() {
+            ingredientiTemporanei.push({ nome: "Nuovo ingrediente", grammi: 100, costo_grammo: 0.02 });
+            renderTabellaIngredienti();
+        }
+
+        function aggiornaIngredienteDato(index, campo, valore) {
+            if(ingredientiTemporanei[index]) {
+                if(campo === 'nome') {
+                    ingredientiTemporanei[index][campo] = valore;
+                } else {
+                    ingredientiTemporanei[index][campo] = parseFloat(valore) || 0;
+                }
+            }
+        }
+
+        function eliminaIngredienteRiga(index) {
+            ingredientiTemporanei.splice(index, 1);
+            renderTabellaIngredienti();
+        }
+
+        async function salvaRicettaNelDatabase() {
+            if (!piattoInModificaId) return;
+
+            // Calcoliamo in automatico il food cost totale sommando i grammi * costo_grammo di ogni ingrediente
+            let costoTotaleRicetta = 0;
+            ingredientiTemporanei.forEach(ingr => {
+                costoTotaleRicetta += (ingr.grammi * ingr.costo_grammo);
+            });
+
+            // Arrotondiamo a due decimali
+            costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
+
+            let piatto = piatti.find(p => p.id === piattoInModificaId);
+            if (piatto) {
+                // Aggiorniamo sia la struttura ricetta che il costo_oggi del piatto automaticamente!
+                piatto.ricetta = JSON.stringify(ingredientiTemporanei);
+                let vecchioCostoOggi = piatto.costo_oggi;
+                piatto.costo_ieri = vecchioCostoOggi;
+                piatto.costo_oggi = costoTotaleRicetta > 0 ? costoTotaleRicetta : piatto.costo_oggi;
+
+                let { error } = await _supabase
+                    .from('piatti')
+                    .update({ 
+                        ricetta: piatto.ricetta,
+                        costo_ieri: piatto.costo_ieri,
+                        costo_oggi: piatto.costo_oggi
+                    })
+                    .eq('id', piattoInModificaId);
+
+                if (error) {
+                    alert("Errore nel salvataggio della ricetta: " + error.message);
+                } else {
+                    alert("Ricetta salvata! Il costo complessivo delle materie prime è stato aggiornato in tabella.");
+                    chiudiModalRicetta();
+                    renderTabella();
+                }
+            }
+        }
+
+        // ==========================================
+        // 🧾 FUNZIONI IA & FATTURE
+        // ==========================================
         function convertiInBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.readAsDataURL(file);
-                reader.onload = () => {
-                    let stringaBase64 = reader.result.split(',')[1];
-                    resolve(stringaBase64);
-                };
+                reader.onload = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = error => reject(error);
             });
         }
@@ -548,16 +718,13 @@
 
                 if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
                     for (let ingr of datiGemini.ingredienti_estratti) {
-    // Se l'IA non ha trovato un piatto associato valido, usiamo una scritta di avviso
-    const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
-    
-    logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) → Associato a: <em>${nomePiattoAssociato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
+                        const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
+                        logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) → Associato a: <em>${nomePiattoAssociato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
 
-    // 🛡️ PROTEZIONE: Eseguiamo il controllo .toLowerCase() solo se il piatto associato esiste davvero
-    let piattoTrovato = null;
-    if (ingr.piatto_associato) {
-        piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
-    }
+                        let piattoTrovato = null;
+                        if (ingr.piatto_associato) {
+                            piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
+                        }
                         
                         if (piattoTrovato) {
                             let vecchioCostoOggi = piattoTrovato.costo_oggi;
@@ -575,11 +742,11 @@
                 }
 
                 contenitoreIA.innerHTML = logFattura;
-                renderTabella();
+                caricaPiattiDalDatabase();
 
             } catch (err) {
                 console.error(err);
-                contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore durante l'elaborazione dell'IA: ${err.message}<br><small>Verifica che la chiave GEMINI_API_KEY sia impostata correttamente nel Vault di Supabase.</small></span>`;
+                contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore durante l'elaborazione dell'IA: ${err.message}</span>`;
             }
         }
 
@@ -610,7 +777,6 @@
 
             try {
                 const urlEdgeFunction = "https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura";
-                // 🌐 PRENDIAMO LA LINGUA SELEZIONATA AL LOGIN
                 const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
                 
                 const response = await fetch(urlEdgeFunction, {
@@ -620,7 +786,7 @@
                         modalita: "chat",
                         listaPiattiMenu: piatti, 
                         message: messaggioTesto,
-                        lingua: linguaSelezionata // 🌐 SPEDITA AL BACKEND
+                        lingua: linguaSelezionata
                     })
                 });
 
