@@ -635,7 +635,7 @@
             });
         }
 
-        async function elaboraFatturaConIA(event) {
+      async function elaboraFatturaConIA(event) {
             const file = event.target.files[0];
             if (!file) return;
 
@@ -649,12 +649,80 @@
                 const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
 
                 const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
-                    method: "POST",
+                    method: "POST", 
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         modalita: "fattura", fileData: fileBase64, fileType: file.type, listaPiattiMenu: listaNomiMenu, lingua: linguaSelezionata
                     })
                 });
+
+                const risultato = await response.json();
+                if (!risultato.successo) throw new Error(risultato.error);
+
+                const datiGemini = risultato.dati;
+                let logFattura = "<strong>Fattura elaborata con successo! Dettagli:</strong><br>";
+
+                if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
+                    for (let ingr of datiGemini.ingredienti_estratti) {
+                        const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
+                        logFattura += `• <strong>${ingr.nome}</strong> → Associato a: <em>${nomePiattoAssociato}</em> al costo di ${ingr.prezzo_unitario}€<br>`;
+
+                        let piattoTrovato = null;
+                        if (ingr.piatto_associato) {
+                            piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
+                        }
+                        
+                        if (piattoTrovato) {
+                            let ingredientiPiatto = [];
+                            try {
+                                ingredientiPiatto = piattoTrovato.ricetta ? JSON.parse(piattoTrovato.ricetta) : [];
+                            } catch(e) { ingredientiPiatto = []; }
+
+                            let costoAlGrammoReale = parseFloat((ingr.prezzo_unitario / 1000).toFixed(5));
+
+                            // 🎯 CONTROLLO INTELLIGENTE ANTI-DUPLICATI:
+                            // Trasformiamo i nomi in minuscolo per non fare errori tra maiuscole e minuscole
+                            let nomeFatturaPulito = ingr.nome.toLowerCase().trim();
+                            
+                            // Cerchiamo se esiste già un ingrediente simile nel ricettario
+                            let ingrEsistente = ingredientiPiatto.find(i => {
+                                let nomeRicettarioPulito = i.nome.toLowerCase().trim();
+                                // Controlla se il nome nel ricettario è contenuto nella descrizione della fattura
+                                // (es. "guanciale" è contenuto in "guanciale teso s/v rossi")
+                                // oppure se la fattura contiene il ricettario
+                                return nomeFatturaPulito.includes(nomeRicettarioPulito) || nomeRicettarioPulito.includes(nomeFatturaPulito);
+                            });
+
+                            if (ingrEsistente) {
+                                // Se lo trova (anche se il nome della fattura è più lungo), aggiorna SOLO il prezzo
+                                ingrEsistente.costo_grammo = costoAlGrammoReale;
+                            } else {
+                                // 🚫 Se l'ingrediente NON c'entra proprio nulla con quelli esistenti, in modalità demo lo blocchiamo
+                                // così eviti che l'IA inserisca ingredienti extra a caso che sballano il Food Cost!
+                                console.log(`Ingrediente ignorato per evitare duplicati errati: ${ingr.nome}`);
+                            }
+
+                            // Ricalcoliamo il costo totale del piatto
+                            let nuovoCostoTotale = 0;
+                            ingredientiPiatto.forEach(i => nuovoCostoTotale += (i.grammi * i.costo_grammo));
+                            nuovoCostoTotale = parseFloat(nuovoCostoTotale.toFixed(2));
+
+                            piattoTrovato.ricetta = JSON.stringify(ingredientiPiatto);
+                            piattoTrovato.costo_ieri = piattoTrovato.costo_oggi;
+                            piattoTrovato.costo_oggi = nuovoCostoTotale;
+
+                            await _supabase.from('piatti').update({
+                                ricetta: piattoTrovato.ricetta, costo_ieri: piattoTrovato.costo_ieri, costo_oggi: piattoTrovato.costo_oggi
+                            }).eq('id', piattoTrovato.id);
+                        }
+                    }
+                }
+                contenitoreIA.innerHTML = logFattura;
+                caricaPiattiDalDatabase();
+            } catch (err) {
+                contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore: ${err.message}</span>`;
+            }
+        }
 
                 const risultato = await response.json();
                 if (!risultato.successo) throw new Error(risultato.error);
