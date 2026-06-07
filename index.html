@@ -726,17 +726,47 @@
                             piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
                         }
                         
-                        if (piattoTrovato) {
-                            let vecchioCostoOggi = piattoTrovato.costo_oggi;
-                            piattoTrovato.costo_ieri = vecchioCostoOggi;
-                            piattoTrovato.costo_oggi = ingr.prezzo_unitario;
+                       if (piattoTrovato) {
+    // 1. Recuperiamo gli ingredienti attuali del piatto
+    let ingredientiPiatto = [];
+    try {
+        ingredientiPiatto = piattoTrovato.ricetta ? JSON.parse(piattoTrovato.ricetta) : [];
+    } catch(e) {
+        ingredientiPiatto = [];
+    }
 
-                            await _supabase.from('piatti').update({
-                                costo_ieri: vecchioCostoOggi,
-                                costo_oggi: ingr.prezzo_unitario
-                            }).eq('id', piattoTrovato.id);
-                        }
-                    }
+    // 2. Cerchiamo se l'ingrediente della fattura esiste già nella ricetta di questo piatto
+    let ingredienteDaAggiornare = ingredientiPiatto.find(i => i.nome.toLowerCase().trim() === ingr.nome.toLowerCase().trim());
+    
+    if (ingredienteDaAggiornare) {
+        // Se lo trova, aggiorna il costo al grammo con quello nuovo della fattura
+        ingredienteDaAggiornare.costo_grammo = ingr.prezzo_unitario;
+    } else {
+        // Se è un ingrediente nuovo per questo piatto, lo aggiunge alla ricetta (ipotizzando 100g di default)
+        ingredientiPiatto.push({ nome: ingr.nome, grammi: 100, costo_grammo: ingr.prezzo_unitario });
+    }
+
+    // 3. Ricalcoliamo il Food Cost totale del piatto basandoci sulla nuova ricetta
+    let nuovoCostoTotale = 0;
+    ingredientiPiatto.forEach(i => {
+        nuovoCostoTotale += (i.grammi * i.costo_grammo);
+    });
+    nuovoCostoTotale = parseFloat(nuovoCostoTotale.toFixed(2));
+
+    // 4. Aggiorniamo i dati locali del piatto
+    let vecchioCostoOggi = piattoTrovato.costo_oggi;
+    piattoTrovato.ricetta = JSON.stringify(ingredientiPiatto);
+    piattoTrovato.costo_ieri = vecchioCostoOggi;
+    piattoTrovato.costo_oggi = nuovoCostoTotale > 0 ? nuovoCostoTotale : vecchioCostoOggi;
+
+    // 5. Salviamo tutto su Supabase in un colpo solo
+    await _supabase.from('piatti').update({
+        ricetta: piattoTrovato.ricetta,
+        costo_ieri: piattoTrovato.costo_ieri,
+        costo_oggi: piattoTrovato.costo_oggi
+    }).eq('id', piattoTrovato.id);
+}
+                    
                 } else {
                     logFattura += "Nessun ingrediente associato ai piatti del menu trovato.";
                 }
