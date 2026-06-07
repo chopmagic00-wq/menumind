@@ -14,10 +14,24 @@
             margin: 0;
             padding: 20px;
         }
+        /* ⚠️ BANNER DEMO AVVISO */
+        .demo-banner {
+            background-color: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #b45309;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
         /* Schermata Login */
         .auth-container {
             max-width: 400px;
-            margin: 100px auto;
+            margin: 60px auto;
             background: white;
             padding: 30px;
             border-radius: 8px;
@@ -27,7 +41,7 @@
         .auth-container h2 { color: #107c41; margin-top: 0; }
         .input-group { margin-bottom: 15px; }
         .input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
-        .input-group input { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+        .input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
         
         /* Dashboard Excel */
         .excel-container {
@@ -197,6 +211,10 @@
 </head>
 <body>
 
+    <div class="demo-banner">
+        🚀 MenuMind AI è attualmente in modalità DEMO. Il sistema è in fase di test: potrebbero presentarsi bug o errori imprevisti.
+    </div>
+
     <div id="auth-screen" class="auth-container">
         <h2 id="auth-title">Accedi a MenuMind AI</h2>
         <form id="auth-form" onsubmit="gestisciAuth(event)">
@@ -208,6 +226,17 @@
                 <label>Password</label>
                 <input type="password" id="auth-password" required placeholder="••••••••">
             </div>
+            
+            <div class="input-group">
+                <label>Lingua Piattaforma / AI</label>
+                <select id="auth-lingua">
+                    <option value="Italiano">Italiano 🇮🇹</option>
+                    <option value="Inglese">English 🇬🇧</option>
+                    <option value="Francese">Français 🇫🇷</option>
+                    <option value="Spagnolo">Español 🇪🇸</option>
+                </select>
+            </div>
+
             <button type="submit" id="btn-auth-submit" class="btn" style="width: 100%;">Accedi</button>
             <p style="text-align: center; font-size: 13px; margin-top: 15px;">
                 <a href="#" id="auth-toggle" onclick="cambiaModalita(event)" style="color: #107c41;">Non hai un account? Registrati</a>
@@ -493,6 +522,7 @@
             try {
                 const fileBase64 = await convertiInBase64(file);
                 const listaNomiMenu = piatti.map(p => p.nome);
+                const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
 
                 const urlEdgeFunction = "https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura";
                 const response = await fetch(urlEdgeFunction, {
@@ -502,7 +532,8 @@
                         modalita: "fattura",
                         fileData: fileBase64,
                         fileType: file.type,
-                        listaPiattiMenu: listaNomiMenu
+                        listaPiattiMenu: listaNomiMenu,
+                        lingua: linguaSelezionata
                     })
                 });
 
@@ -572,6 +603,8 @@
 
             try {
                 const urlEdgeFunction = "https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura";
+                // 🌐 PRENDIAMO LA LINGUA SELEZIONATA AL LOGIN
+                const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
                 
                 const response = await fetch(urlEdgeFunction, {
                     method: "POST",
@@ -579,7 +612,8 @@
                     body: JSON.stringify({
                         modalita: "chat",
                         listaPiattiMenu: piatti, 
-                        message: messaggioTesto
+                        message: messaggioTesto,
+                        lingua: linguaSelezionata // 🌐 SPEDITA AL BACKEND
                     })
                 });
 
@@ -592,7 +626,6 @@
                 let botDiv = document.createElement("div");
                 botDiv.className = "message bot";
 
-                // Fix bug "resultado" -> "risultato"
                 if (risultato.successo === true || risultato.risposta) {
                     botDiv.innerText = risultato.risposta;
                 } else {
