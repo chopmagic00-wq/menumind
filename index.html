@@ -548,9 +548,16 @@
 
                 if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
                     for (let ingr of datiGemini.ingredienti_estratti) {
-                        logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) → Associato a: <em>${ingr.piatto_associato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
+    // Se l'IA non ha trovato un piatto associato valido, usiamo una scritta di avviso
+    const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
+    
+    logFattura += `• <strong>${ingr.nome}</strong> (${ingr.quantita}) → Associato a: <em>${nomePiattoAssociato}</em> con costo stimato di ${ingr.prezzo_unitario}€<br>`;
 
-                        let piattoTrovato = piatti.find(p => p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
+    // 🛡️ PROTEZIONE: Eseguiamo il controllo .toLowerCase() solo se il piatto associato esiste davvero
+    let piattoTrovato = null;
+    if (ingr.piatto_associato) {
+        piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
+    }
                         
                         if (piattoTrovato) {
                             let vecchioCostoOggi = piattoTrovato.costo_oggi;
