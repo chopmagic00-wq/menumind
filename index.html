@@ -3,989 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <title>MenuMind AI - Smart Excel SaaS</title>
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: #f1f5f9;
-            color: #1e293b;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-        .main-content {
-            flex: 1;
-        }
-        /* ⚠️ BANNER DEMO AVVISO */
-        .demo-banner {
-            background-color: #fef3c7;
-            border: 1px solid #f59e0b;
-            color: #b45309;
-            padding: 10px 20px;
-            text-align: center;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 6px;
-            max-width: 1100px;
-            margin: 0 auto 20px auto;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        /* 👋 BANNER ONBOARDING NUOVO UTENTE */
-        .onboarding-banner {
-            background-color: #e0f2fe;
-            border: 1px solid #7dd3fc;
-            color: #0369a1;
-            padding: 15px 20px;
-            border-radius: 6px;
-            max-width: 1100px;
-            margin: 0 auto 20px auto;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        /* 📖 PANNELLO GUIDA AZIENDALE (ACCORDION) */
-        .guide-accordion {
-            max-width: 1100px;
-            margin: 0 auto 20px auto;
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .guide-header {
-            background-color: #f8fafc;
-            padding: 12px 20px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .guide-content {
-            padding: 20px;
-            display: none;
-            background: white;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-        .guide-step {
-            margin-bottom: 15px;
-            padding-left: 15px;
-            border-left: 3px solid #107c41;
-        }
-        .guide-step h4 {
-            margin: 0 0 5px 0;
-            color: #107c41;
-        }
-
-        /* Schermata Login */
-        .auth-container {
-            max-width: 400px;
-            margin: 60px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        .auth-container h2 { color: #107c41; margin-top: 0; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
-        .input-group input, .input-group select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
-        
-        /* Dashboard Excel */
-        .excel-container {
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            max-width: 1100px;
-            margin: 0 auto 40px auto;
-        }
-        .excel-header {
-            background-color: #107c41;
-            color: white;
-            padding: 12px 20px;
-            font-size: 18px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .toolbar {
-            background-color: #f8fafc;
-            padding: 10px 20px;
-            border-bottom: 1px solid #cbd5e1;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .excel-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        .excel-table th {
-            background-color: #f1f5f9;
-            color: #64748b;
-            padding: 10px;
-            border-bottom: 2px solid #cbd5e1;
-            border-right: 1px solid #e2e8f0;
-            text-align: left;
-        }
-        .excel-table td {
-            padding: 8px;
-            border-bottom: 1px solid #e2e8f0;
-            border-right: 1px solid #e2e8f0;
-        }
-        .excel-table input {
-            width: 90%;
-            border: none;
-            background: transparent;
-            font-size: 14px;
-            padding: 4px;
-        }
-        .excel-table input:focus {
-            background: #e2e8f0;
-            outline: 2px solid #107c41;
-            border-radius: 2px;
-        }
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
+        /* [Mantieni qui tutti i tuoi stili originali...] */
+        body { font-family: -apple-system, sans-serif; background-color: #f1f5f9; padding: 20px; }
+        .excel-table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
+        .excel-table th, .excel-table td { padding: 10px; border: 1px solid #e2e8f0; }
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .status-danger { background-color: #fee2e2; color: #991b1b; }
         .status-success { background-color: #dcfce7; color: #166534; }
-        .status-warning { background-color: #ffedd5; color: #c2410c; }
-        
-        .btn {
-            background-color: #107c41;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn:hover { background-color: #0e6b37; }
-        .btn-danger { background-color: #ef4444; padding: 4px 8px; font-size: 12px; }
-        .btn-danger:hover { background-color: #dc2626; }
-        .btn-logout { background-color: transparent; border: 1px solid white; font-size: 12px; }
-        .btn-pause { background-color: #f97316; font-size: 12px; padding: 6px 12px; }
-        .btn-pause:hover { background-color: #ea580c; }
-        
-        .btn-ricetta {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            padding: 0 5px;
-            color: #107c41;
-        }
-        .btn-ricetta:hover { transform: scale(1.2); }
-
-        /* 📋 FINESTRA MODAL PER INGREDIENTI */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-        }
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        .modal-header h3 { margin: 0; color: #107c41; }
-        .close-modal { font-size: 24px; cursor: pointer; color: #64748b; }
-        .close-modal:hover { color: #1e293b; }
-
-        /* 🤖 STILI CHATBOT WIDGET */
-        .chat-widget {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 350px;
-            height: 450px;
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 9999;
-            font-size: 14px;
-        }
-        .chat-header {
-            background: #107c41;
-            color: white;
-            padding: 12px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .chat-messages {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            background: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .message {
-            padding: 8px 12px;
-            border-radius: 8px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        .message.user {
-            background: #dcfce7;
-            color: #14532d;
-            align-self: flex-end;
-        }
-        .message.bot {
-            background: white;
-            color: #1e293b;
-            border: 1px solid #e2e8f0;
-            align-self: flex-start;
-            white-space: pre-line;
-        }
-        .chat-input-area {
-            border-top: 1px solid #cbd5e1;
-            padding: 10px;
-            display: flex;
-            gap: 6px;
-            background: white;
-        }
-        .chat-input-area input {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid #cbd5e1;
-            border-radius: 4px;
-            outline: none;
-        }
-        .chat-toggle-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #107c41;
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 9999;
-        }
-
-        /* 📧 FOOTER */
-        .footer-contacts {
-            text-align: center;
-            padding: 20px;
-            font-size: 14px;
-            color: #64748b;
-            border-top: 1px solid #cbd5e1;
-            background-color: white;
-            margin-top: auto;
-        }
-        .footer-contacts a {
-            color: #107c41;
-            text-decoration: none;
-            font-weight: bold;
-        }
-        .footer-contacts a:hover {
-            text-decoration: underline;
-        }
+        .btn { background-color: #107c41; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-danger { background-color: #ef4444; }
     </style>
 </head>
 <body>
 
-    <div class="main-content">
-        <div id="risparmio-card" style="background: #107c41; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-    <h2 style="margin: 0;">Risparmio generato questo mese</h2>
-    <p id="totale-risparmio" style="font-size: 2em; font-weight: bold; margin: 10px 0 0 0;">€ 0.00</p>
-</div>
-        <div class="demo-banner">
-            🚀 MenuMind AI è attualmente in modalità DEMO. Il sistema è in fase di test: potrebbero presentarsi bug o errori imprevisti.
-        </div>
-
-        <div id="welcome-onboarding" class="onboarding-banner" style="display: none;">
-            <h3 style="margin: 0 0 5px 0;">👋 Benvenuto su MenuMind AI Chef!</h3>
-            <p style="margin: 0 0 10px 0; font-size: 14px; color: #0c4a6e;">
-                Per farti vedere come funziona la piattaforma, abbiamo pre-caricato <strong>2 piatti d'esempio</strong>. 
-                Guarda come il sistema attiva l'<strong>Allarme Prezzi</strong> se l'IA legge un aumento dalle fatture dei tuoi fornitori!
-            </p>
-            <button class="btn" style="background-color: #0284c7; font-size: 13px;" onclick="document.getElementById('file-fattura').click()">
-                📸 Fai una prova: Carica una fattura reale
-            </button>
-        </div>
-
-        <div id="auth-screen" class="auth-container">
-            <h2 id="auth-title">Accedi a MenuMind AI</h2>
-            <form id="auth-form" onsubmit="gestisciAuth(event)">
-                <div class="input-group">
-                    <label>Email Aziendale</label>
-                    <input type="email" id="auth-email" required placeholder="chef@ristorante.com">
-                </div>
-                <div class="input-group">
-                    <label>Password</label>
-                    <input type="password" id="auth-password" required placeholder="••••••••">
-                </div>
-                <div class="input-group">
-                    <label>Lingua Piattaforma / AI</label>
-                    <select id="auth-lingua">
-                        <option value="Italiano">Italiano 🇮🇹</option>
-                        <option value="Inglese">English 🇬🇧</option>
-                        <option value="Francese">Français 🇫🇷</option>
-                        <option value="Spagnolo">Español 🇪🇸</option>
-                    </select>
-                </div>
-                <button type="submit" id="btn-auth-submit" class="btn" style="width: 100%;">Accedi</button>
-                <p style="text-align: center; font-size: 13px; margin-top: 15px;">
-                    <a href="#" id="auth-toggle" onclick="cambiaModalita(event)" style="color: #107c41;">Non hai un account? Registrati</a>
-                </p>
-            </form>
-        </div>
-
-        <div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
-            
-            <div id="main-guide-panel" class="guide-accordion">
-                <div class="guide-header" onclick="toggleGuida()">
-                    <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
-                    <span id="guide-arrow">▼</span>
-                </div>
-                <div id="guide-body" class="guide-content">
-                    <div class="guide-step">
-                        <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
-                        <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
-                        <ul>
-                            <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
-                            <li>Digita il nome reale (es. <em>Tonnarelli Cacio e Pepe</em>) e imposta il prezzo finale al pubblico.</li>
-                            <li>Clicca sull'icona del libro (📖) vicino al nome per inserire opzionalmente la ricetta base e le grammature.</li>
-                        </ul>
-                    </div>
-                    <div class="guide-step">
-                        <h4>Fase 2: Caricamento e Analisi Automatica della Fattura (AI Processing)</h4>
-                        <p>Una volta popolata la tabella, puoi automatizzare l'aggiornamento dei costi tramite scansione.</p>
-                        <ul>
-                            <li>Prepara il file o la foto chiara della fattura del fornitore (PDF, PNG o JPG).</li>
-                            <li>Clicca sul pulsante azzurro <strong>🧾 Carica Fattura con IA</strong> e seleziona il documento.</li>
-                            <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <h3 style="margin: 0 0 5px 0; color: #0f172a;">💳 Stato Piano & Fatturazione</h3>
-                    <span id="stripe-status-badge" class="status-badge status-success">PROVA GRATUITA ATTIVA</span>
-                    <span id="giorni-rimanenti-txt" style="font-size: 13px; margin-left: 10px; color: #64748b;"></span>
-                </div>
-                <div id="stripe-actions">
-                    </div>
-            </div>
-
-            <div id="pause-screen" style="display: none; margin: 20px auto; text-align: center; max-width: 900px; background: white; padding: 40px 30px; border-radius: 8px; border: 1px solid #fdba74; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
-                <div style="font-size: 50px; margin-bottom: 15px;">⏸️</div>
-                <h2 style="color: #c2410c; font-size: 24px; margin-bottom: 10px;">Il tuo account MenuMind AI è in Pausa</h2>
-                <p style="color: #64748b; max-width: 600px; margin: 0 auto 25px auto; font-size: 15px; line-height: 1.6;">
-                    Hai attivato il piano di <strong>Mantenimento Danti a 19€/mese</strong> ideale per i periodi di chiusura stagionale. Il tuo ricettario, i piatti e lo storico delle vecchie fatture collegate su Supabase sono al sicuro e congelati.
-                </p>
-                <button class="btn" style="background-color: #107c41; padding: 12px 24px; font-size: 15px;" onclick="riattivaDaPausa()">
-                    🚀 Riapri il locale: Riattiva l'App Completa
-                </button>
-            </div>
-
-            <div id="stripe-paywall" style="display: none; margin: 20px auto; text-align: center; max-width: 900px; background: white; padding: 30px; border-radius: 8px; border: 1px solid #cbd5e1;">
-                <h2 style="color: #1e293b; font-size: 24px; margin-bottom: 5px;">⏳ Periodo di prova terminato!</h2>
-                <p style="color: #64748b; margin-bottom: 30px;">Sblocca istantaneamente la tua tabella e l'IA di MenuMind per tenere sotto controllo i margini del tuo ristorante.</p>
-                <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-                <stripe-pricing-table 
-                  pricing-table-id="prctbl_1Tdn0mFIe7UjH34vgi06e5QK" 
-                  publishable-key="pk_live_51Td6E0FIe7UjH34vokWZ8a7GVqZFxGBA8kzDgxFO4yjZXUAayGkB1N5dZovzcKv9gbGwrAQ5xiwaySRym5USl4NL00lrZATrcb">
-                </stripe-pricing-table>
-            </div>
-
-            <div id="excel-app-container" class="excel-container">
-                <div class="excel-header">
-                    <span>📊 MenuMind_Platform_v1.xlsx</span>
-                    <div>
-                        <span id="user-display" style="font-size: 14px; margin-right: 15px;"></span>
-                        <button class="btn btn-logout" onclick="logout()">Esci</button>
-                    </div>
-                </div>
-                
-                <div class="toolbar">
-                    <button class="btn" onclick="aggiungiRiga()">➕ Inserisci Nuovo Piatto</button>
-                    <input type="file" id="file-fattura" accept="image/*,application/pdf" style="display: none;" onchange="elaboraFatturaConIA(event)">
-                    <button class="btn" style="background-color: #0284c7;" onclick="document.getElementById('file-fattura').click()">🧾 Carica Fattura con IA</button>
-                    <span style="color: #64748b; font-size: 12px;">💡 Clicca su 📖 vicino al nome per inserire ingredienti e grammature!</span>
-                </div>
-                
-                <div id="risposta-ai" style="margin: 10px 20px; padding: 10px; background: #f3e8ff; border-left: 4px solid #7c3aed; border-radius: 4px; display: none; font-size: 13px;"></div>
-
-                <table class="excel-table">
-                    <thead>
-                        <tr>
-                            <th>Nome Piatto</th>
-                            <th>Prezzo Vendita (€)</th>
-                            <th>Costo Mat. Prima Ieri (€)</th>
-                            <th>Costo Mat. Prima Oggi (€)</th>
-                            <th>Stato Margine</th>
-                            <th>Azioni</th>
-                        </tr>
-                    </thead>
-                    <tbody id="excel-body"></tbody>
-                </table>
-            </div>
-        </div>
+    <div id="risparmio-card" style="background: #107c41; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
+        <h2 style="margin: 0;">Risparmio totale generato</h2>
+        <p id="totale-risparmio" style="font-size: 2em; font-weight: bold; margin: 10px 0 0 0;">€ 0.00</p>
     </div>
 
-    <div id="ricetta-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modal-titolo-piatto">Ingredienti e Grammature</h3>
-                <span class="close-modal" onclick="chiudiModalRicetta()">&times;</span>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <button class="btn" style="font-size:12px; padding:5px 10px;" onclick="aggiungiIngredienteRiga()">➕ Aggiungi Ingrediente</button>
-            </div>
-            <table class="excel-table" style="margin-bottom: 20px;">
-                <thead>
-                    <tr>
-                        <th>Ingrediente</th>
-                        <th>Peso (Grammi / g)</th>
-                        <th>Costo al Grammo (€/g)</th>
-                        <th>Azioni</th>
-                    </tr>
-                </thead>
-                <tbody id="ricetta-body"></tbody>
-            </table>
-            <div style="text-align: right;">
-                <button class="btn" onclick="salvaRicettaNelDatabase()">💾 Salva Ricetta</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="chat-toggle" class="chat-toggle-btn" style="display: none;" onclick="toggleChat()">💬</div>
-    <div id="chat-box" class="chat-widget" style="display: none;">
-        <div class="chat-header">
-            <span>🤖 Assistente Chef AI</span>
-            <span style="cursor: pointer;" onclick="toggleChat()">✖</span>
-        </div>
-        <div id="chat-messages" class="chat-messages">
-            <div class="message bot">Ciao Chef! Sono il tuo assistente MenuMind. Chiedimi pure analisi sui tuoi costi, ricette o margini!</div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chat-input" placeholder="Scrivi un messaggio..." onkeypress="if(event.key === 'Enter') inviaMessaggioChat()">
-            <button class="btn" onclick="inviaMessaggioChat()">Invia</button>
-        </div>
-    </div>
-
-    <div class="footer-contacts">
-        In caso di bisogno contattateci con email: <a href="mailto:menumindai6@gmail.com">menumindai6@gmail.com</a>
-    </div>
+    <table class="excel-table">
+        <thead>
+            <tr>
+                <th>Nome Piatto</th>
+                <th>Prezzo (€)</th>
+                <th>Costo Ieri (€)</th>
+                <th>Costo Oggi (€)</th>
+                <th>Stato Margine</th>
+                <th>Azioni</th>
+            </tr>
+        </thead>
+        <tbody id="excel-body"></tbody>
+    </table>
 
     <script>
-        // Configurazione Supabase
         const SUPABASE_URL = "https://jgpokqpgsrlmvspkxach.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncG9rcXBnc3JsbXZzcGt4YWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTE0NTUsImV4cCI6MjA5NTcyNzQ1NX0.S6pcXGgIwkMxunG7ULLUQau56LNJg3pBrfXuD21xAws";    
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpncG9rcXBnc3JsbXZzcGt4YWNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxNTE0NTUsImV4cCI6MjA5NTcyNzQ1NX0.S6pcXGgIwkMxunG7ULLUQau56LNJg3pBrfXuD21xAws";   
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let piatti = [];
-        let isRegistrazione = false;
-        let utenteCorrente = null;
-        let piattoInModificaId = null;
-        let ingredientiTemporanei = [];
-        let isAppInPausa = false;
+        let piatti = []; // Dati caricati da Supabase
 
-        function toggleGuida() {
-            let gBody = document.getElementById("guide-body");
-            let gArrow = document.getElementById("guide-arrow");
-            if (gBody.style.display === "block") {
-                gBody.style.display = "none";
-                gArrow.innerText = "▼";
-            } else {
-                gBody.style.display = "block";
-                gArrow.innerText = "▲";
-            }
-        }
-
-        function cambiaModalita(e) {
-            e.preventDefault();
-            isRegistrazione = !isRegistrazione;
-            document.getElementById("auth-title").innerText = isRegistrazione ? "Crea un Account Gratuito" : "Accedi a MenuMind AI";
-            document.getElementById("btn-auth-submit").innerText = isRegistrazione ? "Registrati e Inizia" : "Accedi";
-            document.getElementById("auth-toggle").innerText = isRegistrazione ? "Hai già un account? Accedi" : "Non hai un account? Registrati";
-        }
-
-        async function gestisciAuth(e) {
-            e.preventDefault();
-            let email = document.getElementById("auth-email").value;
-            let password = document.getElementById("auth-password").value;
-            let riscontro;
-            
-            if (isRegistrazione) {
-                riscontro = await _supabase.auth.signUp({ email, password });
-                if (riscontro.error) return alert("Errore password/email: " + riscontro.error.message);
-                alert("Registrazione completata con successo! Fai pure il login.");
-                return;
-            } else {
-                riscontro = await _supabase.auth.signInWithPassword({ email, password });
-                if (riscontro.error) return alert("Accesso negato: Email o password errate!");
-            }
-
-            utenteCorrente = riscontro.data.user;
-            document.getElementById("auth-screen").style.display = "none";
-            document.getElementById("dashboard-screen").style.display = "block";
-            document.getElementById("chat-toggle").style.display = "flex"; 
-            document.getElementById("user-display").innerText = "👤 Ristorante: " + utenteCorrente.email;
-            
-            aggiornaStatoAbbonamentoInterfaccia();
-            caricaPiattiDalDatabase();
-        }
-
-        function logout() {
-            _supabase.auth.signOut();
-            utenteCorrente = null;
-            isAppInPausa = false;
-            document.getElementById("dashboard-screen").style.display = "none";
-            document.getElementById("chat-toggle").style.display = "none";
-            document.getElementById("chat-box").style.display = "none";
-            document.getElementById("welcome-onboarding").style.display = "none";
-            document.getElementById("auth-screen").style.display = "block";
-        }
-
-        function aggiornaStatoAbbonamentoInterfaccia() {
-            let dataCreazione = new Date(utenteCorrente.created_at);
-            let dataOggi = new Date();
-            let diferenciaInMilliSec = dataOggi.getTime() - dataCreazione.getTime();
-            let giorniPassati = Math.floor(diferenciaInMilliSec / (1000 * 3600 * 24));
-            let giorniRimanenti = 7 - giorniPassati;
-
-            let badge = document.getElementById("stripe-status-badge");
-            let azioniStripe = document.getElementById("stripe-actions");
-            let paywall = document.getElementById("stripe-paywall");
-            let pauseScreen = document.getElementById("pause-screen");
-            let appPiatti = document.getElementById("excel-app-container");
-            let txtGiorni = document.getElementById("giorni-rimanenti-txt");
-            let guidePanel = document.getElementById("main-guide-panel");
-
-            if (isAppInPausa) {
-                badge.className = "status-badge status-warning";
-                badge.innerText = "PIANO PAUSA ATTIVO (19€/MESE)";
-                if(txtGiorni) txtGiorni.innerText = "I tuoi dati sono bloccati e protetti su Supabase.";
-                azioniStripe.innerHTML = ""; 
-                appPiatti.style.display = "none";
-                paywall.style.display = "none";
-                guidePanel.style.display = "none";
-                pauseScreen.style.display = "block";
-                return;
-            }
-
-            if (giorniRimanenti > 0) {
-                badge.className = "status-badge status-success";
-                badge.innerText = "PROVA GRATUITA ATTIVA";
-                if(txtGiorni) txtGiorni.innerText = `Ti rimangono ${giorniRimanenti} giorni di prova gratuita automatica.`;
-                
-                // Pulsante Pausa a 19€/mese ripristinato
-                azioniStripe.innerHTML = `<button class="btn btn-pause" onclick="attivaPausaStagionale()">⏸️ Metti in Pausa Stagionale (19€/mese)</button>`;
-                
-                paywall.style.display = "none";
-                pauseScreen.style.display = "none";
-                guidePanel.style.display = "block";
-                appPiatti.style.display = "block";
-            } else {
-                badge.className = "status-badge status-danger";
-                badge.innerText = "PROVA SCADUTA / APP BLOCCATA";
-                if(txtGiorni) txtGiorni.innerText = `Il tuo periodo di prova gratuita di una settimana è terminato.`;
-                azioniStripe.innerHTML = `<span style="font-size:13px; color:#ef4444; font-weight:bold;">Abbonamento Richiesto</span>`;
-                appPiatti.style.display = "none"; 
-                pauseScreen.style.display = "none";
-                guidePanel.style.display = "none";
-                paywall.style.display = "block";  
-            }
-        }
-
-       function attivaPausaStagionale() {
-    if (confirm("Vuoi mettere in pausa l'abbonamento? Verrai reindirizzato direttamente alla pagina di pagamento sicuro di Stripe per attivare il piano 'Mantenimento Dati a 19€/mese'.")) {
-        
-        // 🚀 Incolla qui il tuo nuovo link diretto (buy.stripe.com)
-        window.open("https://buy.stripe.com/00weVdfqS314aesf20cs802", "_blank");
-        
-        // Attiva la schermata di blocco/pausa nell'applicazione
-        isAppInPausa = true;
-        aggiornaStatoAbbonamentoInterfaccia();
-    }
-}
-        function riattivaDaPausa() {
-            isAppInPausa = false;
-            aggiornaStatoAbbonamentoInterfaccia();
-            alert("Bentornato Chef! L'applicazione è stata riattivata e tutti i tuoi dati sono pronti.");
-        }
-        <div style="background: #107c41; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold;">
-    Risparmio totale generato: <span id="totale-risparmio">€ 0.00</span>
-</div>
-
-<div id="tabella-container">
-   ... la tua tabella ...
-</div>
-
-        async function caricaPiattiDalDatabase() {
-            let { data, error } = await _supabase
-                .from('piatti')
-                .select('*')
-                .order('created_at', { ascending: true });
-
-            if (error) return console.error(error.message);
-            
-            if (!data || data.length === 0) {
-                piatti = [
-                    { id: "demo-1", nome: "Spaghetti alla Carbonara 🍝", vendita: 12.00, costo_ieri: 3.20, costo_oggi: 4.10, ricetta: "[]" },
-                    { id: "demo-2", nome: "Filetto di Manzo ai Tre Pepi 🥩", vendita: 24.00, costo_ieri: 8.50, costo_oggi: 8.50, ricetta: "[]" }
-                ];
-                document.getElementById("welcome-onboarding").style.display = "block";
-            } else {
-                piatti = data;
-                document.getElementById("welcome-onboarding").style.display = "none";
-            }
-            
-           function renderTabella() {
-    let tbody = document.getElementById("excel-body");
-    tbody.innerHTML = "";
-
-    piatti.forEach((piatto) => {
-    
-    let risparmio = piatti.reduce((acc, p) => acc + (p.costo_ieri - p.costo_oggi), 0);
-    document.getElementById("totale-risparmio").innerText = "€ " + risparmio.toFixed(2);
-    
-}
-
+        // FUNZIONE RENDER PRINCIPALE (CON CALCOLO RISPARMIO INTEGRATO)
         function renderTabella() {
             let tbody = document.getElementById("excel-body");
             tbody.innerHTML = "";
 
             piatti.forEach((piatto) => {
+                let isDemoId = String(piatto.id).startsWith("demo-");
                 let statoHtml = piatto.costo_oggi > piatto.costo_ieri 
                     ? `<span class="status-badge status-danger">⚠️ ALLARME PREZZI</span>` 
                     : `<span class="status-badge status-success">✅ OTTIMALE</span>`;
 
-                let isDemoId = String(piatto.id).startsWith("demo-");
-
                 let tr = document.createElement("tr");
                 tr.innerHTML = `
+                    <td><input type="text" value="${piatto.nome}" onchange="aggiornaDato('${piatto.id}', 'nome', this.value)" ${isDemoId ? 'disabled' : ''}></td>
+                    <td><input type="number" value="${piatto.vendita}" onchange="aggiornaDato('${piatto.id}', 'vendita', this.value)"></td>
+                    <td><input type="number" value="${piatto.costo_ieri}" onchange="aggiornaDato('${piatto.id}', 'costo_ieri', this.value)"></td>
                     <td>
-                        <button class="btn-ricetta" onclick="${isDemoId ? "alert('Questo è un piatto demo! Crea un nuovo piatto vero per configurare gli ingredienti.')" : `apriModalRicetta(${piatto.id})`}" title="Vedi ingredienti">📖</button>
-                        <input type="text" value="${piatto.nome}" style="width:75%; display:inline-block;" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'nome', this.value)"`}>
+                        <span style="color: ${piatto.costo_oggi > piatto.costo_ieri ? '#ef4444' : '#107c41'}">
+                            ${piatto.costo_oggi > piatto.costo_ieri ? '▲' : '▼'}
+                        </span>
+                        <input type="number" step="0.1" value="${piatto.costo_oggi}" onchange="aggiornaDato('${piatto.id}', 'costo_oggi', this.value)">
                     </td>
-                    <td><input type="number" step="0.1" value="${piatto.vendita}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'vendita', this.value)"`}></td>
-                    <td><input type="number" step="0.1" value="${piatto.costo_ieri}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'costo_ieri', this.value)"`}></td>
-<td>
-    <span style="display: block; font-weight: bold; margin-bottom: 4px; color: ${piatto.costo_oggi > piatto.costo_ieri ? '#ef4444' : '#107c41'}">
-        ${piatto.costo_oggi > piatto.costo_ieri ? '▲' : '▼'}
-    </span>
-    <input type="number" step="0.1" value="${piatto.costo_oggi}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'costo_oggi', this.value)"`}>
-</td>                    <td>${statoHtml}</td>
-                    <td><button class="btn btn-danger" ${isDemoId ? "disabled style='opacity:0.5;'" : `onclick="eliminaRiga(${piatto.id})"`}>Elimina</button></td>
+                    <td>${statoHtml}</td>
+                    <td><button class="btn btn-danger" onclick="eliminaRiga('${piatto.id}')">Elimina</button></td>
                 `;
                 tbody.appendChild(tr);
             });
+
+            // Calcolo del Risparmio (Somma delle differenze tra i costi)
+            let risparmio = piatti.reduce((acc, p) => acc + (p.costo_ieri - p.costo_oggi), 0);
+            let elementoRisparmio = document.getElementById("totale-risparmio");
+            elementoRisparmio.innerText = "€ " + risparmio.toFixed(2);
+            elementoRisparmio.style.color = risparmio < 0 ? "#f87171" : "white";
         }
 
-        async function aggiungiRiga() {
-            if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
-                piatti = [];
-                document.getElementById("welcome-onboarding").style.display = "none";
-            }
-
-            let { data, error } = await _supabase.from('piatti').insert([{
-                user_id: utenteCorrente.id, nome: "Nuovo Piatto", vendita: 10.00, costo_ieri: 0, costo_oggi: 0, ricetta: "[]"
-            }]).select();
-            if (error) return alert(error.message);
-            piatti.push(data[0]);
-            renderTabella();
-        }
-
+        // FUNZIONI DI SUPPORTO
         async function aggiornaDato(id, campo, valore) {
-            let piatto = piatti.find(p => p.id === id);
+            let piatto = piatti.find(p => String(p.id) === String(id));
             if (piatto) {
-                let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
-                piatto[campo] = valoreFormattato;
-                await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
+                piatto[campo] = campo === 'nome' ? valore : parseFloat(valore);
+                await _supabase.from('piatti').update({ [campo]: piatto[campo] }).eq('id', id);
                 renderTabella();
             }
         }
 
         async function eliminaRiga(id) {
             await _supabase.from('piatti').delete().eq('id', id);
-            piatti = piatti.filter(p => p.id !== id);
-            if (piatti.length === 0) {
-                caricaPiattiDalDatabase();
-            } else {
-                renderTabella();
-            }
+            piatti = piatti.filter(p => String(p.id) !== String(id));
+            renderTabella();
         }
 
-        function apriModalRicetta(id) {
-            piattoInModificaId = id;
-            let piatto = piatti.find(p => p.id === id);
-            if (!piatto) return;
-            document.getElementById("modal-titolo-piatto").innerText = `Ingredienti & Grammature: ${piatto.nome}`;
-            try {
-                ingredientiTemporanei = piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
-            } catch(e) { ingredientiTemporanei = []; }
-            renderTabellaIngredienti();
-            document.getElementById("ricetta-modal").style.display = "flex";
+        // Caricamento iniziale
+        async function caricaDati() {
+            let { data } = await _supabase.from('piatti').select('*');
+            piatti = data || [];
+            renderTabella();
         }
 
-        function chiudiModalRicetta() {
-            document.getElementById("ricetta-modal").style.display = "none";
-        }
-
-        function renderTabellaIngredienti() {
-            let tbody = document.getElementById("ricetta-body");
-            tbody.innerHTML = "";
-            if (ingredientiTemporanei.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito.</td></tr>`;
-                return;
-            }
-            ingredientiTemporanei.forEach((ingr, index) => {
-                let tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td><input type="text" value="${ingr.nome || ''}" onchange="aggiornaIngredienteDato(${index}, 'nome', this.value)"></td>
-                    <td><input type="number" value="${ingr.grammi || 0}" onchange="aggiornaIngredienteDato(${index}, 'grammi', this.value)"></td>
-                    <td><input type="number" step="0.001" value="${ingr.costo_grammo || 0}" onchange="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)"></td>
-                    <td><button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function aggiungiIngredienteRiga() {
-            ingredientiTemporanei.push({ nome: "Nuovo ingrediente", grammi: 100, costo_grammo: 0.01 });
-            renderTabellaIngredienti();
-        }
-
-        function aggiornaIngredienteDato(index, campo, valore) {
-            if(ingredientiTemporanei[index]) {
-                ingredientiTemporanei[index][campo] = campo === 'nome' ? valore : parseFloat(valore) || 0;
-            }
-        }
-
-        function eliminaIngredienteRiga(index) {
-            ingredientiTemporanei.splice(index, 1);
-            renderTabellaIngredienti();
-        }
-
-        async function salvaRicettaNelDatabase() {
-            let costoTotaleRicetta = 0;
-            ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
-            costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
-
-            let piatto = piatti.find(p => p.id === piattoInModificaId);
-            if (piatto) {
-                piatto.ricetta = JSON.stringify(ingredientiTemporanei);
-                piatto.costo_ieri = piatto.costo_oggi;
-                piatto.costo_oggi = costoTotaleRicetta;
-
-                await _supabase.from('piatti').update({ 
-                    ricetta: piatto.ricetta, costo_ieri: piatto.costo_ieri, costo_oggi: piatto.costo_oggi
-                }).eq('id', piattoInModificaId);
-
-                alert("Ricetta salvata e ricalcolata!");
-                chiudiModalRicetta();
-                renderTabella();
-            }
-        }
-
-        function convertiInBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
-            // Aggiungi queste righe in fondo alla funzione renderTabella
-    let risparmio = piatti.reduce((acc, p) => acc + (p.costo_ieri - p.costo_oggi), 0);
-    document.getElementById("totale-risparmio").innerText = "€ " + risparmio.toFixed(2);
-    
-    // Se il valore è negativo, puoi farlo diventare rosso per avvisare
-    let elementoRisparmio = document.getElementById("totale-risparmio");
-    elementoRisparmio.style.color = risparmio < 0 ? "#f87171" : "white";
-} // Questa è la parentesi finale della funzione
-        }
-
-        async function elaboraFatturaConIA(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            let contenitoreIA = document.getElementById("risposta-ai");
-            contenitoreIA.style.display = "block";
-            contenitoreIA.innerHTML = "🤖 L'IA sta analizzando la fattura e aggiornando il ricettario...";
-
-            try {
-                const fileBase64 = await convertiInBase64(file);
-                const listaNomiMenu = piatti.filter(p => !String(p.id).startsWith("demo-")).map(p => p.nome);
-                const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
-
-                const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
-                    method: "POST", 
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        modalita: "fattura", fileData: fileBase64, fileType: file.type, listaPiattiMenu: listaNomiMenu, lingua: linguaSelezionata
-                    })
-                });
-
-                const risultato = await response.json();
-                if (!risultato.successo) throw new Error(risultato.error);
-
-                const datiGemini = risultato.dati;
-                let logFattura = "<strong>Fattura elaborata con successo! Dettagli:</strong><br>";
-
-                if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
-                    for (let ingr of datiGemini.ingredienti_estratti) {
-                        const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
-                        logFattura += `• <strong>${ingr.nome}</strong> → Associato a: <em>${nomePiattoAssociato}</em> al costo di ${ingr.prezzo_unitario}€<br>`;
-
-                        let piattoTrovato = null;
-                        if (ingr.piatto_associato) {
-                            piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
-                        }
-                        
-                        if (piattoTrovato && !String(piattoTrovato.id).startsWith("demo-")) {
-                            let ingredientiPiatto = [];
-                            try {
-                                ingredientiPiatto = piattoTrovato.ricetta ? JSON.parse(piattoTrovato.ricetta) : [];
-                            } catch(e) { ingredientiPiatto = []; }
-
-                            let costoAlGrammoReale = parseFloat((ingr.prezzo_unitario / 1000).toFixed(5));
-                            let nomeFatturaPulito = ingr.nome.toLowerCase().trim();
-                            
-                            let ingrEsistente = ingredientiPiatto.find(i => {
-                                let nomeRicettarioPulito = i.nome.toLowerCase().trim();
-                                return nomeFatturaPulito.includes(nomeRicettarioPulito) || nomeRicettarioPulito.includes(nomeFatturaPulito);
-                            });
-
-                            if (ingrEsistente) {
-                                ingrEsistente.costo_grammo = costoAlGrammoReale;
-                            }
-
-                            let nuovoCostoTotale = 0;
-                            ingredientiPiatto.forEach(i => nuovoCostoTotale += (i.grammi * i.costo_grammo));
-                            nuovoCostoTotale = parseFloat(nuovoCostoTotale.toFixed(2));
-
-                            piattoTrovato.ricetta = JSON.stringify(ingredientiPiatto);
-                            piattoTrovato.costo_ieri = piattoTrovato.costo_oggi;
-                            piattoTrovato.costo_oggi = nuovoCostoTotale;
-
-                            await _supabase.from('piatti').update({
-                                ricetta: piattoTrovato.ricetta, costo_ieri: piattoTrovato.costo_ieri, costo_oggi: piattoTrovato.costo_oggi
-                            }).eq('id', piattoTrovato.id);
-                        }
-                    }
-                }
-                contenitoreIA.innerHTML = logFattura;
-                caricaPiattiDalDatabase();
-            } catch (err) {
-                contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore: ${err.message}</span>`;
-            }
-        }
-
-        function toggleChat() {
-            let chatBox = document.getElementById("chat-box");
-            chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
-        }
-
-        async function inviaMessaggioChat() {
-            let inputElem = document.getElementById("chat-input");
-            let messaggioTesto = inputElem.value.trim();
-            if (!messaggioTesto) return;
-
-            stampaMessaggioInChat(messaggioTesto, "user");
-            inputElem.value = "";
-
-            let loadingId = stampaMessaggioInChat("🤖 Sto elaborando la risposta...", "bot");
-
-            try {
-                const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
-                const contestoPiatti = piatti.map(p => ({
-                    nome: p.nome,
-                    prezzo_vendita: p.vendita,
-                    costo_precedente: p.costo_ieri,
-                    costo_attuale: p.costo_oggi
-                }));
-
-                const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        modalita: "chat",
-                        messaggio: messaggioTesto,
-                        contesto: contestoPiatti,
-                        lingua: linguaSelezionata
-                    })
-                });
-
-                const rispostaJson = await response.json();
-                document.getElementById(loadingId).remove();
-
-                if (rispostaJson.successo && rispostaJson.rispostaChat) {
-                    stampaMessaggioInChat(rispostaJson.rispostaChat, "bot");
-                } else {
-                    stampaMessaggioInChat("Scusami Chef, ho riscontrato un problema nel calcolo dei dati. Riprova tra un attimo!", "bot");
-                }
-
-            } catch (errore) {
-                console.error("Errore chat:", errore);
-                document.getElementById(loadingId).remove();
-                stampaMessaggioInChat("Impossibile connettersi all'assistente AI. Verifica la tua connessione.", "bot");
-            }
-        }
-
-        function stampaMessaggioInChat(testo, autore) {
-            let boxMessaggi = document.getElementById("chat-messages");
-            let divMsg = document.createElement("div");
-            let uniqueId = "msg-" + Date.now() + Math.floor(Math.random() * 1000);
-            
-            divMsg.id = uniqueId;
-            divMsg.className = `message ${autore}`;
-            divMsg.innerText = testo;
-            
-            boxMessaggi.appendChild(divMsg);
-            boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
-            
-            return uniqueId;
-        }
+        caricaDati();
     </script>
 </body>
 </html>
