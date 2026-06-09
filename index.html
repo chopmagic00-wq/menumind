@@ -1006,8 +1006,12 @@ const payload = {
             throw new Error(`Server Error ${response.status}: ${erroreTesto}`);
         }
 
-       const rispostaJson = await response.json();
-        document.getElementById(loadingId).remove();
+      const rispostaJson = await response.json();
+        
+        // CONTROLLO SICUREZZA: Rimuove il caricamento solo se la variabile e l'elemento esistono
+        if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
+            document.getElementById(loadingId).remove();
+        }
 
         // CONTROLLO DI SICUREZZA: Vediamo cosa ci ha risposto esattamente la funzione
         console.log("Oggetto ricevuto da Supabase:", rispostaJson);
