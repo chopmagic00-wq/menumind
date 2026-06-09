@@ -634,17 +634,16 @@
         }
 
        function attivaPausaStagionale() {
-    if (confirm("Vuoi mettere in pausa l'abbonamento? Verrai reindirizzato sul tuo Portale Stripe sicuro, dove potrai selezionare il piano 'Mantenimento Dati a 19€/mese' per proteggere il tuo ricettario durante la chiusura.")) {
+    if (confirm("Vuoi mettere in pausa l'abbonamento? Verrai reindirizzato direttamente alla pagina di pagamento sicuro di Stripe per attivare il piano 'Mantenimento Dati a 19€/mese'.")) {
         
-        // 🚨 COLLA QUI IL TUO LINK DEL PORTALE STRIPE
-        window.open("https://billing.stripe.com/p/login/5kQeVddiKdFIaes076cs800", "_blank");
+        // 🚀 Incolla qui il tuo nuovo link diretto (buy.stripe.com)
+        window.open("https://buy.stripe.com/00weVdfqS314aesf20cs802", "_blank");
         
         // Attiva la schermata di blocco/pausa nell'applicazione
         isAppInPausa = true;
         aggiornaStatoAbbonamentoInterfaccia();
     }
 }
-
         function riattivaDaPausa() {
             isAppInPausa = false;
             aggiornaStatoAbbonamentoInterfaccia();
