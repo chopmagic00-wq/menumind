@@ -164,6 +164,7 @@
         }
         .status-danger { background-color: #fee2e2; color: #991b1b; }
         .status-success { background-color: #dcfce7; color: #166534; }
+        .status-warning { background-color: #ffedd5; color: #c2410c; }
         
         .btn {
             background-color: #107c41;
@@ -178,6 +179,8 @@
         .btn-danger { background-color: #ef4444; padding: 4px 8px; font-size: 12px; }
         .btn-danger:hover { background-color: #dc2626; }
         .btn-logout { background-color: transparent; border: 1px solid white; font-size: 12px; }
+        .btn-pause { background-color: #f97316; font-size: 12px; padding: 6px 12px; }
+        .btn-pause:hover { background-color: #ea580c; }
         
         .btn-ricetta {
             background: none;
@@ -371,7 +374,7 @@
 
         <div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
             
-            <div class="guide-accordion">
+            <div id="main-guide-panel" class="guide-accordion">
                 <div class="guide-header" onclick="toggleGuida()">
                     <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
                     <span id="guide-arrow">▼</span>
@@ -404,7 +407,19 @@
                     <span id="stripe-status-badge" class="status-badge status-success">PROVA GRATUITA ATTIVA</span>
                     <span id="giorni-rimanenti-txt" style="font-size: 13px; margin-left: 10px; color: #64748b;"></span>
                 </div>
-                <div id="stripe-actions"></div>
+                <div id="stripe-actions">
+                    </div>
+            </div>
+
+            <div id="pause-screen" style="display: none; margin: 20px auto; text-align: center; max-width: 900px; background: white; padding: 40px 30px; border-radius: 8px; border: 1px solid #fdba74; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                <div style="font-size: 50px; margin-bottom: 15px;">⏸️</div>
+                <h2 style="color: #c2410c; font-size: 24px; margin-bottom: 10px;">Il tuo account MenuMind AI è in Pausa</h2>
+                <p style="color: #64748b; max-width: 600px; margin: 0 auto 25px auto; font-size: 15px; line-height: 1.6;">
+                    Hai attivato il piano di <strong>Mantenimento Dati a 19€/mese</strong> ideale per i periodi di chiusura stagionale. I tuoi piatti, il ricettario e lo storico delle fatture collegate a Supabase sono al sicuro e congelati.
+                </p>
+                <button class="btn" style="background-color: #107c41; padding: 12px 24px; font-size: 15px;" onclick="riattivaDaPausa()">
+                    🚀 Riapri il locale: Riattiva l'App Completa
+                </button>
             </div>
 
             <div id="stripe-paywall" style="display: none; margin: 20px auto; text-align: center; max-width: 900px; background: white; padding: 30px; border-radius: 8px; border: 1px solid #cbd5e1;">
@@ -508,6 +523,7 @@
         let utenteCorrente = null;
         let piattoInModificaId = null;
         let ingredientiTemporanei = [];
+        let isAppInPausa = false; // Stato dell'opzione di pausa stagionale
 
         // Gestione espansione Guida Operativa
         function toggleGuida() {
@@ -552,13 +568,14 @@
             document.getElementById("chat-toggle").style.display = "flex"; 
             document.getElementById("user-display").innerText = "👤 Ristorante: " + utenteCorrente.email;
             
-            controllaGiorniAbbonamentoReale();
+            aggiornaStatoAbbonamentoInterfaccia();
             caricaPiattiDalDatabase();
         }
 
         function logout() {
             _supabase.auth.signOut();
             utenteCorrente = null;
+            isAppInPausa = false;
             document.getElementById("dashboard-screen").style.display = "none";
             document.getElementById("chat-toggle").style.display = "none";
             document.getElementById("chat-box").style.display = "none";
@@ -566,7 +583,8 @@
             document.getElementById("auth-screen").style.display = "block";
         }
 
-        function controllaGiorniAbbonamentoReale() {
+        // Calcola e aggiorna lo stato visivo (Abbonato, Scaduto o In Pausa Stagionale)
+        function aggiornaStatoAbbonamentoInterfaccia() {
             let dataCreazione = new Date(utenteCorrente.created_at);
             let dataOggi = new Date();
             let diferenciaInMilliSec = dataOggi.getTime() - dataCreazione.getTime();
@@ -576,24 +594,61 @@
             let badge = document.getElementById("stripe-status-badge");
             let azioniStripe = document.getElementById("stripe-actions");
             let paywall = document.getElementById("stripe-paywall");
+            let pauseScreen = document.getElementById("pause-screen");
             let appPiatti = document.getElementById("excel-app-container");
-            let txtGiorni = document.getElementById("giorni-rimanenti-txt");
+            let txtGiorni = document.getElementById("giorni-remanenti-txt");
+            let guidePanel = document.getElementById("main-guide-panel");
 
+            // Caso 1: L'utente ha cliccato su "Metti in Pausa"
+            if (isAppInPausa) {
+                badge.className = "status-badge status-warning";
+                badge.innerText = "PIANO PAUSA ATTIVO (19€/MESE)";
+                if(txtGiorni) txtGiorni.innerText = "I tuoi dati sono congelati e protetti su Supabase.";
+                azioniStripe.innerHTML = ""; // Rimuovo azioni durante la pausa
+                appPiatti.style.display = "none";
+                paywall.style.display = "none";
+                guidePanel.style.display = "none";
+                pauseScreen.style.display = "block";
+                return;
+            }
+
+            // Caso 2: Account attivo (in prova o abbonato regolarmente)
             if (giorniRimanenti > 0) {
                 badge.className = "status-badge status-success";
                 badge.innerText = "PROVA GRATUITA ATTIVA";
-                if(txtGiorni) txtGiorni.innerText = `Ti rimangono ${giorniRimanenti} giorni di prova gratuita automatica.`;
-                azioniStripe.innerHTML = `<span style="font-size:13px; color:#64748b;">Usa liberamente la piattaforma</span>`;
+                if(txtGiorni) txtGiorni.innerText = `Ti rimangono ${giorniRimanenti} days di prova gratuita automatica.`;
+                
+                // Pulsante per mettere in pausa l'abbonamento
+                azioniStripe.innerHTML = `<button class="btn btn-pause" onclick="attivaPausaStagionale()">⏸️ Metti in Pausa Stagionale (19€/mese)</button>`;
+                
                 paywall.style.display = "none";
+                pauseScreen.style.display = "none";
+                guidePanel.style.display = "block";
                 appPiatti.style.display = "block";
             } else {
+                // Caso 3: Prova terminata, paywall bloccante
                 badge.className = "status-badge status-danger";
                 badge.innerText = "PROVA SCADUTA / APP BLOCCATA";
                 if(txtGiorni) txtGiorni.innerText = `Il tuo periodo di prova gratuita di una settimana è terminato.`;
                 azioniStripe.innerHTML = `<span style="font-size:13px; color:#ef4444; font-weight:bold;">Abbonamento Richiesto</span>`;
                 appPiatti.style.display = "none"; 
+                pauseScreen.style.display = "none";
+                guidePanel.style.display = "none";
                 paywall.style.display = "block";  
             }
+        }
+
+        function attivaPausaStagionale() {
+            if (confirm("Vuoi mettere in pausa l'abbonamento? L'app verrà congelata al costo di mantenimento di 19€/mese e i tuoi dati rimarranno salvati nel database.")) {
+                isAppInPausa = true;
+                aggiornaStatoAbbonamentoInterfaccia();
+            }
+        }
+
+        function riattivaDaPausa() {
+            isAppInPausa = false;
+            aggiornaStatoAbbonamentoInterfaccia();
+            alert("Bentornato Chef! L'applicazione è stata riattivata e tutti i tuoi dati sono pronti.");
         }
 
         async function caricaPiattiDalDatabase() {
@@ -725,7 +780,6 @@
             }
         }
 
-        // 🛠️ FIX APPLICATO: Rimossa stringa errata '物理' prima del nome funzione
         function eliminaIngredienteRiga(index) {
             ingredientiTemporanei.splice(index, 1);
             renderTabellaIngredienti();
