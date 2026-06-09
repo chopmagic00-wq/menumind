@@ -330,10 +330,6 @@
 <body>
 
     <div class="main-content">
-        <div id="risparmio-card" style="background: #107c41; color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; text-align: center;">
-    <h2 style="margin: 0;">Risparmio generato questo mese</h2>
-    <p id="totale-risparmio" style="font-size: 2em; font-weight: bold; margin: 10px 0 0 0;">€ 0.00</p>
-</div>
         <div class="demo-banner">
             🚀 MenuMind AI è attualmente in modalità DEMO. Il sistema è in fase di test: potrebbero presentarsi bug o errori imprevisti.
         </div>
@@ -653,13 +649,6 @@
             aggiornaStatoAbbonamentoInterfaccia();
             alert("Bentornato Chef! L'applicazione è stata riattivata e tutti i tuoi dati sono pronti.");
         }
-        <div style="background: #107c41; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-weight: bold;">
-    Risparmio totale generato: <span id="totale-risparmio">€ 0.00</span>
-</div>
-
-<div id="tabella-container">
-   ... la tua tabella ...
-</div>
 
         async function caricaPiattiDalDatabase() {
             let { data, error } = await _supabase
@@ -680,16 +669,8 @@
                 document.getElementById("welcome-onboarding").style.display = "none";
             }
             
-           function renderTabella() {
-    let tbody = document.getElementById("excel-body");
-    tbody.innerHTML = "";
-
-    piatti.forEach((piatto) => {
-    
-    let risparmio = piatti.reduce((acc, p) => acc + (p.costo_ieri - p.costo_oggi), 0);
-    document.getElementById("totale-risparmio").innerText = "€ " + risparmio.toFixed(2);
-    
-}
+            renderTabella();
+        }
 
         function renderTabella() {
             let tbody = document.getElementById("excel-body");
@@ -710,12 +691,8 @@
                     </td>
                     <td><input type="number" step="0.1" value="${piatto.vendita}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'vendita', this.value)"`}></td>
                     <td><input type="number" step="0.1" value="${piatto.costo_ieri}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'costo_ieri', this.value)"`}></td>
-<td>
-    <span style="display: block; font-weight: bold; margin-bottom: 4px; color: ${piatto.costo_oggi > piatto.costo_ieri ? '#ef4444' : '#107c41'}">
-  ${piatto.costo_oggi > piatto.costo_ieri ? '▲' : '▼'}
-    </span>
-    <input type="number" step="0.1" value="${piatto.costo_oggi}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'costo_oggi', this.value)"`}>
-</td>                    <td>${statoHtml}</td>
+                    <td><input type="number" step="0.1" value="${piatto.costo_oggi}" ${isDemoId ? 'disabled' : `onchange="aggiornaDato(${piatto.id}, 'costo_oggi', this.value)"`}></td>
+                    <td>${statoHtml}</td>
                     <td><button class="btn btn-danger" ${isDemoId ? "disabled style='opacity:0.5;'" : `onclick="eliminaRiga(${piatto.id})"`}>Elimina</button></td>
                 `;
                 tbody.appendChild(tr);
@@ -732,8 +709,8 @@
                 user_id: utenteCorrente.id, nome: "Nuovo Piatto", vendita: 10.00, costo_ieri: 0, costo_oggi: 0, ricetta: "[]"
             }]).select();
             if (error) return alert(error.message);
-            piatti.push(data[0]);
-            renderTabella();
+questo é una parte, adesso ti do l'altra
+            piatti.push(data[0]); renderTabella();
         }
 
         async function aggiornaDato(id, campo, valore) {
@@ -835,12 +812,6 @@
                 reader.onload = () => resolve(reader.result.split(',')[1]);
                 reader.onerror = error => reject(error);
             });
-        let risparmio = piatti.reduce((acc, p) => acc + (p.costo_ieri - p.costo_oggi), 0);
-            document.getElementById("totale-risparmio").innerText = "€ " + risparmio.toFixed(2);
-            
-            let elementoRisparmio = document.getElementById("totale-risparmio");
-            elementoRisparmio.style.color = risparmio < 0 ? "#f87171" : "white";
-            // ------------------------------------------
         }
 
         async function elaboraFatturaConIA(event) {
@@ -986,4 +957,5 @@
         }
     </script>
 </body>
-</html>
+</html> 
+    
