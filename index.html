@@ -756,24 +756,46 @@ function renderTabella() {
         }
 
         async function aggiornaDato(id, campo, valore) {
-            let piatto = piatti.find(p => p.id === id);
-            if (piatto) {
-                let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
-                piatto[campo] = valoreFormattato;
-                await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
-                renderTabella();
-            }
+    // Usiamo == invece di === per evitare bug se uno è numero e l'altro è stringa
+    let piatto = piatti.find(p => p.id == id);
+    if (piatto) {
+        let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
+        piatto[campo] = valoreFormattato;
+        
+        // Aggiorna su Supabase
+        const { error } = await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
+        
+        if (error) {
+            console.error("Errore durante l'aggiornamento su Supabase:", error);
         }
+        
+        renderTabella();
+    } else {
+        console.warn(`Impossibile trovare il piatto con ID: ${id} per aggiornare il campo ${campo}`);
+    }
+}
 
-        async function eliminaRiga(id) {
-            await _supabase.from('piatti').delete().eq('id', id);
-            piatti = piatti.filter(p => p.id !== id);
-            if (piatti.length === 0) {
-                caricaPiattiDalDatabase();
-            } else {
-                renderTabella();
-            }
-        }
+async function eliminaRiga(id) {
+    if (!confirm("Sei sicuro di voler eliminare questo piatto?")) return;
+
+    // Elimina da Supabase
+    const { error } = await _supabase.from('piatti').delete().eq('id', id);
+    
+    if (error) {
+        console.error("Errore durante l'eliminazione su Supabase:", error);
+        alert("Impossibile eliminare il piatto dal database.");
+        return;
+    }
+
+    // Filtra l'array locale usando ==
+    piatti = piatti.filter(p => p.id != id);
+    
+    if (piatti.length === 0) {
+        caricaPiattiDalDatabase();
+    } else {
+        renderTabella();
+    }
+}
 
         function apriModalRicetta(id) {
             piattoInModificaId = id;
