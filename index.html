@@ -415,7 +415,7 @@
                 <div style="font-size: 50px; margin-bottom: 15px;">⏸️</div>
                 <h2 style="color: #c2410c; font-size: 24px; margin-bottom: 10px;">Il tuo account MenuMind AI è in Pausa</h2>
                 <p style="color: #64748b; max-width: 600px; margin: 0 auto 25px auto; font-size: 15px; line-height: 1.6;">
-                    Hai attivato il piano di <strong>Mantenimento Dati a 19€/mese</strong> ideale per i periodi di chiusura stagionale. I tuoi piatti, il ricettario e lo storico delle fatture collegate a Supabase sono al sicuro e congelati.
+                    Hai attivato il piano di <strong>Mantenimento Danti a 19€/mese</strong> ideale per i periodi di chiusura stagionale. Il tuo ricettario, i piatti e lo storico delle vecchie fatture collegate su Supabase sono al sicuro e congelati.
                 </p>
                 <button class="btn" style="background-color: #107c41; padding: 12px 24px; font-size: 15px;" onclick="riattivaDaPausa()">
                     🚀 Riapri il locale: Riattiva l'App Completa
@@ -523,9 +523,8 @@
         let utenteCorrente = null;
         let piattoInModificaId = null;
         let ingredientiTemporanei = [];
-        let isAppInPausa = false; // Stato dell'opzione di pausa stagionale
+        let isAppInPausa = false;
 
-        // Gestione espansione Guida Operativa
         function toggleGuida() {
             let gBody = document.getElementById("guide-body");
             let gArrow = document.getElementById("guide-arrow");
@@ -583,7 +582,6 @@
             document.getElementById("auth-screen").style.display = "block";
         }
 
-        // Calcola e aggiorna lo stato visivo (Abbonato, Scaduto o In Pausa Stagionale)
         function aggiornaStatoAbbonamentoInterfaccia() {
             let dataCreazione = new Date(utenteCorrente.created_at);
             let dataOggi = new Date();
@@ -596,15 +594,14 @@
             let paywall = document.getElementById("stripe-paywall");
             let pauseScreen = document.getElementById("pause-screen");
             let appPiatti = document.getElementById("excel-app-container");
-            let txtGiorni = document.getElementById("giorni-remanenti-txt");
+            let txtGiorni = document.getElementById("giorni-rimanenti-txt");
             let guidePanel = document.getElementById("main-guide-panel");
 
-            // Caso 1: L'utente ha cliccato su "Metti in Pausa"
             if (isAppInPausa) {
                 badge.className = "status-badge status-warning";
                 badge.innerText = "PIANO PAUSA ATTIVO (19€/MESE)";
-                if(txtGiorni) txtGiorni.innerText = "I tuoi dati sono congelati e protetti su Supabase.";
-                azioniStripe.innerHTML = ""; // Rimuovo azioni durante la pausa
+                if(txtGiorni) txtGiorni.innerText = "I tuoi dati sono bloccati e protetti su Supabase.";
+                azioniStripe.innerHTML = ""; 
                 appPiatti.style.display = "none";
                 paywall.style.display = "none";
                 guidePanel.style.display = "none";
@@ -612,13 +609,12 @@
                 return;
             }
 
-            // Caso 2: Account attivo (in prova o abbonato regolarmente)
             if (giorniRimanenti > 0) {
                 badge.className = "status-badge status-success";
                 badge.innerText = "PROVA GRATUITA ATTIVA";
-                if(txtGiorni) txtGiorni.innerText = `Ti rimangono ${giorniRimanenti} days di prova gratuita automatica.`;
+                if(txtGiorni) txtGiorni.innerText = `Ti rimangono ${giorniRimanenti} giorni di prova gratuita automatica.`;
                 
-                // Pulsante per mettere in pausa l'abbonamento
+                // Pulsante Pausa a 19€/mese ripristinato
                 azioniStripe.innerHTML = `<button class="btn btn-pause" onclick="attivaPausaStagionale()">⏸️ Metti in Pausa Stagionale (19€/mese)</button>`;
                 
                 paywall.style.display = "none";
@@ -626,7 +622,6 @@
                 guidePanel.style.display = "block";
                 appPiatti.style.display = "block";
             } else {
-                // Caso 3: Prova terminata, paywall bloccante
                 badge.className = "status-badge status-danger";
                 badge.innerText = "PROVA SCADUTA / APP BLOCCATA";
                 if(txtGiorni) txtGiorni.innerText = `Il tuo periodo di prova gratuita di una settimana è terminato.`;
@@ -638,12 +633,17 @@
             }
         }
 
-        function attivaPausaStagionale() {
-            if (confirm("Vuoi mettere in pausa l'abbonamento? L'app verrà congelata al costo di mantenimento di 19€/mese e i tuoi dati rimarranno salvati nel database.")) {
-                isAppInPausa = true;
-                aggiornaStatoAbbonamentoInterfaccia();
-            }
-        }
+       function attivaPausaStagionale() {
+    if (confirm("Vuoi mettere in pausa l'abbonamento? Verrai reindirizzato sul tuo Portale Stripe sicuro, dove potrai selezionare il piano 'Mantenimento Dati a 19€/mese' per proteggere il tuo ricettario durante la chiusura.")) {
+        
+        // 🚨 COLLA QUI IL TUO LINK DEL PORTALE STRIPE
+        window.open("https://billing.stripe.com/p/login/5kQeVddiKdFIaes076cs800", "_blank");
+        
+        // Attiva la schermata di blocco/pausa nell'applicazione
+        isAppInPausa = true;
+        aggiornaStatoAbbonamentoInterfaccia();
+    }
+}
 
         function riattivaDaPausa() {
             isAppInPausa = false;
@@ -891,7 +891,6 @@
             }
         }
 
-        // Gestione Finestra ChatWidget
         function toggleChat() {
             let chatBox = document.getElementById("chat-box");
             chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
