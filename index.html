@@ -45,6 +45,45 @@
             margin: 0 auto 20px auto;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
+        
+        /* 📖 PANNELLO GUIDA AZIENDALE (ACCORDION) */
+        .guide-accordion {
+            max-width: 1100px;
+            margin: 0 auto 20px auto;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .guide-header {
+            background-color: #f8fafc;
+            padding: 12px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .guide-content {
+            padding: 20px;
+            display: none;
+            background: white;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .guide-step {
+            margin-bottom: 15px;
+            padding-left: 15px;
+            border-left: 3px solid #107c41;
+        }
+        .guide-step h4 {
+            margin: 0 0 5px 0;
+            color: #107c41;
+        }
+
         /* Schermata Login */
         .auth-container {
             max-width: 400px;
@@ -331,6 +370,34 @@
         </div>
 
         <div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
+            
+            <div class="guide-accordion">
+                <div class="guide-header" onclick="toggleGuida()">
+                    <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
+                    <span id="guide-arrow">▼</span>
+                </div>
+                <div id="guide-body" class="guide-content">
+                    <div class="guide-step">
+                        <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
+                        <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
+                        <ul>
+                            <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
+                            <li>Digita il nome reale (es. <em>Tonnarelli Cacio e Pepe</em>) e imposta il prezzo finale al pubblico.</li>
+                            <li>Clicca sull'icona del libro (📖) vicino al nome per inserire opzionalmente la ricetta base e le grammature.</li>
+                        </ul>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Fase 2: Caricamento e Analisi Automatica della Fattura (AI Processing)</h4>
+                        <p>Una volta popolata la tabella, puoi automatizzare l'aggiornamento dei costi tramite scansione.</p>
+                        <ul>
+                            <li>Prepara il file o la foto chiara della fattura del fornitore (PDF, PNG o JPG).</li>
+                            <li>Clicca sul pulsante azzurro <strong>🧾 Carica Fattura con IA</strong> e seleziona il documento.</li>
+                            <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
             <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h3 style="margin: 0 0 5px 0; color: #0f172a;">💳 Stato Piano & Fatturazione</h3>
@@ -441,6 +508,19 @@
         let utenteCorrente = null;
         let piattoInModificaId = null;
         let ingredientiTemporanei = [];
+
+        // Gestione espansione Guida Operativa
+        function toggleGuida() {
+            let gBody = document.getElementById("guide-body");
+            let gArrow = document.getElementById("guide-arrow");
+            if (gBody.style.display === "block") {
+                gBody.style.display = "none";
+                gArrow.innerText = "▼";
+            } else {
+                gBody.style.display = "block";
+                gArrow.innerText = "▲";
+            }
+        }
 
         function cambiaModalita(e) {
             e.preventDefault();
@@ -645,6 +725,7 @@
             }
         }
 
+        // 🛠️ FIX APPLICATO: Rimossa stringa errata '物理' prima del nome funzione
         function eliminaIngredienteRiga(index) {
             ingredientiTemporanei.splice(index, 1);
             renderTabellaIngredienti();
@@ -762,23 +843,18 @@
             chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
         }
 
-        // 🛠️ FIX INTEGRALE: Logica di comunicazione Chat / AI Edge Function
         async function inviaMessaggioChat() {
             let inputElem = document.getElementById("chat-input");
             let messaggioTesto = inputElem.value.trim();
             if (!messaggioTesto) return;
 
-            // Renderizza messaggio utente
             stampaMessaggioInChat(messaggioTesto, "user");
             inputElem.value = "";
 
-            // Mostra un piccolo indicatore di caricamento
             let loadingId = stampaMessaggioInChat("🤖 Sto elaborando la risposta...", "bot");
 
             try {
                 const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
-                
-                // Mappiamo i dati dei piatti attuali per darli come contesto all'IA della chat
                 const contestoPiatti = piatti.map(p => ({
                     nome: p.nome,
                     prezzo_vendita: p.vendita,
@@ -786,7 +862,6 @@
                     costo_attuale: p.costo_oggi
                 }));
 
-                // Chiamata alla tua Edge Function di Supabase dedicata alla chat
                 const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -799,8 +874,6 @@
                 });
 
                 const rispostaJson = await response.json();
-                
-                // Rimuovi messaggio di caricamento
                 document.getElementById(loadingId).remove();
 
                 if (rispostaJson.successo && rispostaJson.rispostaChat) {
@@ -826,7 +899,7 @@
             divMsg.innerText = testo;
             
             boxMessaggi.appendChild(divMsg);
-            boxMessaggi.scrollTop = boxMessaggi.scrollHeight; // Auto-scroll in basso
+            boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
             
             return uniqueId;
         }
