@@ -1006,17 +1006,13 @@ const payload = {
             throw new Error(`Server Error ${response.status}: ${erroreTesto}`);
         }
 
-      const rispostaJson = await response.json();
-        
-        // CONTROLLO SICUREZZA: Rimuove il caricamento solo se la variabile e l'elemento esistono
+   const rispostaJson = await response.json();
         if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
             document.getElementById(loadingId).remove();
         }
 
-        // CONTROLLO DI SICUREZZA: Vediamo cosa ci ha risposto esattamente la funzione
         console.log("Oggetto ricevuto da Supabase:", rispostaJson);
 
-        // Cerchiamo il testo della risposta in tutte le chiavi possibili
         let testoRisposta = rispostaJson.rispostaChat || 
                             rispostaJson.risposta || 
                             rispostaJson.testo || 
@@ -1024,18 +1020,39 @@ const payload = {
                             rispostaJson.text ||
                             rispostaJson.reply;
 
-        // Se la funzione usa un formato nidificato (es. rispostaJson.dati.risposta)
         if (!testoRisposta && rispostaJson.dati) {
             testoRisposta = rispostaJson.dati.rispostaChat || rispostaJson.dati.risposta || rispostaJson.dati.text;
         }
 
-        // Se abbiamo trovato del testo in qualunque forma, lo stampiamo
         if (testoRisposta) {
             stampaMessaggioInChat(testoRisposta, "bot");
         } else {
-            // Se non c'è proprio testo, ti mostriamo la struttura reale per capire l'errore
             stampaMessaggioInChat(`🤖 Ricevuto JSON ma senza testo leggibile. Struttura: ${JSON.stringify(rispostaJson)}`, "bot");
         }
+
+    } catch (errore) {
+        console.error("Errore dettagliato chat:", errore);
+        if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
+            document.getElementById(loadingId).remove();
+        }
+        stampaMessaggioInChat(`❌ Errore: ${errore.message}`, "bot");
+    }
+} // <-- Questa chiude inviaMessaggioChat
+
+function stampaMessaggioInChat(testo, autore) {
+    let boxMessaggi = document.getElementById("chat-messages");
+    let divMsg = document.createElement("div");
+    let uniqueId = "msg-" + Date.now() + Math.floor(Math.random() * 1000);
+    
+    divMsg.id = uniqueId;
+    divMsg.className = `message ${autore}`;
+    divMsg.innerText = testo;
+    
+    boxMessaggi.appendChild(divMsg);
+    boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
+    
+    return uniqueId;
+} // <-- Questa chiude stampaMessaggioInChat
 
         function stampaMessaggioInChat(testo, autore) {
             let boxMessaggi = document.getElementById("chat-messages");
