@@ -913,17 +913,34 @@ async function eliminaRiga(id) {
     } else
 
 
-        function apriModalRicetta(id) {
-            piattoInModificaId = id;
-            let piatto = piatti.find(p => p.id === id);
-            if (!piatto) return;
-            document.getElementById("modal-titolo-piatto").innerText = `Ingredienti & Grammature: ${piatto.nome}`;
-            try {
-                ingredientiTemporanei = piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
-            } catch(e) { ingredientiTemporanei = []; }
-            renderTabellaIngredienti();
-            document.getElementById("ricetta-modal").style.display = "flex";
-        }
+        function apriModalRicetta(idPiatto) {
+    piattoInModificaRicetta = idPiatto;
+    
+    if (typeof piatti === 'undefined' || !piatti) return;
+    let piatto = piatti.find(p => String(p.id) === String(idPiatto));
+    
+    let titoloElem = document.getElementById("modal-titolo-piatto");
+    if (titoloElem && piatto) {
+        titoloElem.innerText = `Ingredienti e Grammature: ${piatto.nome || 'Nuovo Piatto'}`;
+    }
+
+    // Carica gli ingredienti temporanei per la tabella della ricetta
+    try {
+        ingredientiTemporanei = piatto && piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
+    } catch(e) {
+        ingredientiTemporanei = [];
+    }
+
+    let modal = document.getElementById("ricetta-modal");
+    if (modal) {
+        modal.style.display = "flex"; 
+    } else {
+        console.error("Errore: Non trovo l'ID ricetta-modal");
+    }
+    
+    // CORRETTO: Adesso chiama la funzione con il nome esatto presente nel tuo file!
+    renderIngredienti(); 
+}
 
         function chiudiModalRicetta() {
             document.getElementById("ricetta-modal").style.display = "none";
