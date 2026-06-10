@@ -404,6 +404,32 @@
                             <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
                         </ul>
                     </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; gap: 20px;">
+    
+    <div style="display: flex; gap: 10px;">
+        <button class="btn">Aggiungi piatto</button>
+        <button class="btn">Inserisci fattura</button>
+    </div>
+
+    <div class="card-target-risparmio" style="background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 320px; margin: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <span style="font-weight: bold; color: #1e293b; font-size: 0.95em;">🎯 Target Risparmio</span>
+            <span id="percentuale-target" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 20px; font-size: 0.8em; font-weight: bold;">0%</span>
+        </div>
+        
+        <div style="margin-bottom: 8px;">
+            <span id="soldi-risparmiati" style="font-size: 1.5em; font-weight: 800; color: #0f172a;">0.00 €</span>
+            <span style="color: #64748b; font-size: 0.85em;"> / <span id="obiettivo-target">500</span> €</span>
+        </div>
+
+        <div style="width: 100%; background-color: #f1f5f9; border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 5px;">
+            <div id="barra-progresso" style="width: 0%; background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; border-radius: 100px; transition: width 0.5s ease-in-out;"></div>
+        </div>
+        
+        <p id="messaggio-incitamento" style="font-size: 0.75em; color: #64748b; margin: 0; font-style: italic;">Carica fatture per scovare i rincari!</p>
+    </div>
+
+</div>
                 </div>
             </div>
 
@@ -735,6 +761,52 @@ function renderTabella() {
         `;
         tbody.appendChild(tr);
     });
+    function aggiornaWidgetRisparmio(risparmioEffettivo = 0) {
+    const obiettivoMensile = 500; // Il ristoratore vuole risparmiare 500€ al mese
+    
+    // Se non passiamo un valore specifico, calcoliamolo dai piatti in tabella
+    if (risparmioEffettivo === 0 && typeof piatti !== 'undefined' && piatti) {
+        piatti.forEach(p => {
+            // Calcoliamo la differenza tra costo vecchio (ieri) e costo nuovo (oggi)
+            let variazione = (parseFloat(p.costo_ieri) || 0) - (parseFloat(p.costo_oggi) || 0);
+            
+            // Se la variazione è positiva, significa che lo Chef ha risparmiato ottimizzando il piatto!
+            if (variazione > 0) {
+                risparmioEffettivo += variazione * 100; // Moltiplichiamo per 100 vendite ipotetiche
+            }
+        });
+    }
+
+    // CORRETTO: Usiamo 'obiettivoMensile' invece di 'maxObiettivo' per evitare l'errore
+    let percentuale = (risparmioEffettivo / obiettivoMensile) * 100;
+    if (percentuale > 100) percentuale = 100; // Blocchiamo la barra al 100% massimo
+    
+    // Aggiorniamo i testi e la barra nell'HTML
+    if (document.getElementById("soldi-risparmiati")) {
+        document.getElementById("soldi-risparmiati").innerText = risparmioEffettivo.toFixed(2) + " €";
+    }
+    if (document.getElementById("percentuale-target")) {
+        document.getElementById("percentuale-target").innerText = percentuale.toFixed(0) + "%";
+    }
+    if (document.getElementById("barra-progresso")) {
+        document.getElementById("barra-progresso").style.width = percentuale + "%";
+    }
+
+    // Cambiamo messaggio in base al progresso
+    let messaggioElem = document.getElementById("messaggio-incitamento");
+    if (messaggioElem) {
+        if (percentuale >= 100) {
+            messaggioElem.innerHTML = "🎉 Obiettivo Mensile Raggiunto! Sei un grande Chef d'Azienda!";
+            messaggioElem.style.color = "#10b981"; // Testo Verde Vittoria
+        } else if (percentuale > 50) {
+            messaggioElem.innerText = "🚀 Ottimo lavoro! Sei a più di metà strada.";
+            messaggioElem.style.color = "#3b82f6"; // Testo Blu
+        } else {
+            messaggioElem.innerText = "Carica la prossima fattura per scovare altri rincari!";
+            messaggioElem.style.color = "#64748b"; // Testo Grigio standard
+        }
+    }
+}
 }
         async function aggiungiRiga() {
             if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
