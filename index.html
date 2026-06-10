@@ -831,22 +831,31 @@ function aggiornaWidgetRisparmio(risparmioEffettivo = 0) {
         }
 
         async function aggiornaDato(id, campo, valore) {
-    // Usiamo == invece di === per evitare bug se uno è numero e l'altro è stringa
-    let piatto = piatti.find(p => p.id == id);
-    if (piatto) {
-        let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
-        piatto[campo] = valoreFormattato;
-        
-        // Aggiorna su Supabase
-        const { error } = await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
-        
-        if (error) {
-            console.error("Errore durante l'aggiornamento su Supabase:", error);
-        }
-        
-        renderTabella();
+    // 1. Trova il piatto dentro l'array locale 'piatti'
+    let piatto = piatti.find(p => String(p.id) === String(id));
+    if (!piatto) return;
+
+    // 2. Aggiorna il valore localmente (convertendolo in numero se è un prezzo o un costo)
+    if (campo === 'vendita' || campo === 'costo_oggi' || campo === 'costo_ieri') {
+        piatto[campo] = parseFloat(String(valore).replace(',', '.')) || 0;
     } else {
-        console.warn(`Impossibile trovare il piatto con ID: ${id} per aggiornare il campo ${campo}`);
+        piatto[campo] = valore;
+    }
+
+    // 3. Rinfresca IMMEDIATAMENTE la tabella e le percentuali a schermo
+    renderTabella();
+
+    // 4. Salva il dato su Supabase in background (così non perdi le modifiche)
+    let idNumerico = parseInt(id);
+    if (!isNaN(idNumerico)) {
+        const { error } = await _supabase
+            .from('piatti')
+            .update({ [campo]: piatto[campo] })
+            .eq('id', idNumerico);
+
+        if (error) {
+            console.error("Errore durante il salvataggio su Supabase:", error.message);
+        }
     }
 }
 
