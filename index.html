@@ -683,16 +683,15 @@ function renderTabella() {
         let isDemoId = String(piatto.id).startsWith("demo-");
         let tr = document.createElement("tr");
 
-        // 1. Calcolo della percentuale di Food Cost (Costo Oggi / Vendita)
+        // 1. Calcolo percentuale Food Cost
         let prezzoVendita = parseFloat(piatto.vendita) || 0;
         let costoAttuale = parseFloat(piatto.costo_oggi) || 0;
-        
         let foodCostPercentuale = 0;
         if (prezzoVendita > 0) {
             foodCostPercentuale = parseFloat(((costoAttuale / prezzoVendita) * 100).toFixed(1));
         }
 
-        // 2. Logica di Alert (Soglia critica: Food Cost superiore al 35%)
+        // 2. Alert visivo del Margine
         let indicatoreMargine = "✅ OK";
         let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em;";
         
@@ -703,7 +702,7 @@ function renderTabella() {
             indicatoreMargine = `✅ Ottimo (${foodCostPercentuale}%)`;
         }
 
-        // 3. Controllo trend rispetto a ieri per l'icona
+        // 3. Icona del Trend rispetto a ieri
         let trendIcona = "➡️";
         if (piatto.costo_oggi > piatto.costo_ieri) {
             trendIcona = "🔺";
@@ -711,36 +710,32 @@ function renderTabella() {
             trendIcona = "🔻";
         }
 
-        // Gestione corretta degli apici per evitare bug di sintassi con ID stringa (es. 'demo-1')
-        let onclickEvent = isDemoId ? "alert('Piatto in modalità DEMO!')" : `apriModalRicetta('${piatto.id}')`;
-        let onclickElimina = `eliminaRiga('${piatto.id}')`;
-
+        // COSTRUZIONE SICURA DELL'HTML (Senza conflitti di apici o virgolette)
         tr.innerHTML = `
             <td>
-                <button class="btn-ricetta" onclick="${onclickEvent}" style="margin-right: 8px; cursor: pointer;">📖</button>
-                <input type="text" value="${piatto.nome || ''}" onchange="aggiornaDato('${piatto.id}', 'nome', this.value)" ${isDemoId ? 'disabled' : ''} style="border:none; background:transparent; font-weight:500;">
+                <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
+                <input type="text" value="${piatto.nome || ''}" onchange="aggiornaDato('${piatto.id}', 'nome', this.value)" style="border:none; background:transparent; font-weight:500;">
             </td>
             <td>
-                <input type="number" step="0.1" value="${piatto.vendita || 0}" onchange="aggiornaDato('${piatto.id}', 'vendita', this.value)" ${isDemoId ? 'disabled' : ''} style="width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px;"> €
+                <input type="number" step="0.1" value="${piatto.vendita || 0}" onchange="aggiornaDato('${piatto.id}', 'vendita', this.value)" style="width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px;"> €
             </td>
             <td>
-                <input type="number" step="0.01" value="${piatto.costo_ieri || 0}" onchange="aggiornaDato('${piatto.id}', 'costo_ieri', this.value)" ${isDemoId ? 'disabled' : ''} style="width: 70px; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 4px; color: #64748b; background-color: #f8fafc;"> €
+                <input type="number" step="0.01" value="${piatto.costo_ieri || 0}" onchange="aggiornaDato('${piatto.id}', 'costo_ieri', this.value)" style="width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; color: #64748b;"> €
             </td>
             <td>
-                <input type="number" step="0.01" value="${piatto.costo_oggi || 0}" onchange="aggiornaDato('${piatto.id}', 'costo_oggi', this.value)" ${isDemoId ? 'disabled' : ''} style="width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; font-weight: bold;"> € 
-                <span title="Trend rispetto all'ultima modifica" style="margin-left: 4px;">${trendIcona}</span>
+                <input type="number" step="0.01" value="${piatto.costo_oggi || 0}" onchange="aggiornaDato('${piatto.id}', 'costo_oggi', this.value)" style="width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; font-weight: bold;"> € 
+                <span style="margin-left: 4px;">${trendIcona}</span>
             </td>
             <td>
                 <span style="${stileBadge}">${indicatoreMargine}</span>
             </td>
             <td>
-                <button class="btn btn-danger" onclick="${onclickElimina}" ${isDemoId ? 'disabled' : ''}>Elimina</button>
+                <button class="btn btn-danger" onclick="eliminaRiga('${piatto.id}')">Elimina</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 }
-
         async function aggiungiRiga() {
             if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
                 piatti = [];
@@ -756,24 +751,46 @@ function renderTabella() {
         }
 
         async function aggiornaDato(id, campo, valore) {
-            let piatto = piatti.find(p => p.id === id);
-            if (piatto) {
-                let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
-                piatto[campo] = valoreFormattato;
-                await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
-                renderTabella();
-            }
+    // Usiamo == invece di === per evitare bug se uno è numero e l'altro è stringa
+    let piatto = piatti.find(p => p.id == id);
+    if (piatto) {
+        let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
+        piatto[campo] = valoreFormattato;
+        
+        // Aggiorna su Supabase
+        const { error } = await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
+        
+        if (error) {
+            console.error("Errore durante l'aggiornamento su Supabase:", error);
         }
+        
+        renderTabella();
+    } else {
+        console.warn(`Impossibile trovare il piatto con ID: ${id} per aggiornare il campo ${campo}`);
+    }
+}
 
-        async function eliminaRiga(id) {
-            await _supabase.from('piatti').delete().eq('id', id);
-            piatti = piatti.filter(p => p.id !== id);
-            if (piatti.length === 0) {
-                caricaPiattiDalDatabase();
-            } else {
-                renderTabella();
-            }
-        }
+async function eliminaRiga(id) {
+    if (!confirm("Sei sicuro di voler eliminare questo piatto?")) return;
+
+    // Elimina da Supabase
+    const { error } = await _supabase.from('piatti').delete().eq('id', id);
+    
+    if (error) {
+        console.error("Errore durante l'eliminazione su Supabase:", error);
+        alert("Impossibile eliminare il piatto dal database.");
+        return;
+    }
+
+    // Filtra l'array locale usando ==
+    piatti = piatti.filter(p => p.id != id);
+    
+    if (piatti.length === 0) {
+        caricaPiattiDalDatabase();
+    } else {
+        renderTabella();
+    }
+}
 
         function apriModalRicetta(id) {
             piattoInModificaId = id;
