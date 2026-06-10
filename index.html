@@ -976,12 +976,19 @@ async function eliminaRiga(id) {
         })) : [];
 
         // Costruiamo il payload esattamente come richiesto dalla logica della Edge Function
-        const payload = {
-            modalita: "chat",
-            messaggio: messaggioTesto,
-            contesto: contestoPiatti, 
-            lingua: linguaSelezionata
-        };
+        // Costruiamo il payload con tutte le varianti possibili per il campo del testo
+const payload = {
+    modalita: "chat",
+    
+    // Mandiamo il testo in tutte le salse così la Edge Function lo trova di sicuro:
+    messaggio: messaggioTesto, // Italiano
+    message: messaggioTesto,   // Inglese
+    prompt: messaggioTesto,    // Standard IA
+    testo: messaggioTesto,     // Alternativa italiana
+    
+    contesto: contestoPiatti, 
+    lingua: linguaSelezionata
+};
 
         // CONTROLLO DI SICUREZZA: Ispeziona cosa stai mandando
         console.log("Payload inviato alla Edge Function:", payload);
