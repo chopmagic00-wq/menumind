@@ -870,42 +870,52 @@ async function controllaSessione() {
 
 // 3. FUNZIONE AGGIUNGI RIGA (Aggiornata per usare l'utente al volo)
 async function aggiungiRiga() {
-    // Aggiungiamo un log per vedere cosa risponde Supabase
+    // 1. Chiamiamo Supabase
     const { data, error } = await _supabase.auth.getUser();
-    console.log("Risposta di Supabase.auth.getUser():", { data, error });
 
+    // 2. Controllo errori tecnici
     if (error) {
-        alert("Errore tecnico: " + error.message);
+        console.error("Errore di autenticazione:", error);
+        alert("Errore tecnico nel verificare l'utente.");
         return;
     }
 
-    if (!data.user) {
-        alert("Utente non loggato. Controlla di aver fatto il login correttamente.");
-        return;
-    }
-
+    // 3. Estraiamo l'utente dall'oggetto data
+    // In base alla tua console, l'utente è in data.user
     const user = data.user;
-    // ... resto del tuo codice ...
-    
-    // Esempio di inserimento corretto:
+
+    // 4. Controllo logico
+    if (!user) {
+        alert("Utente non loggato.");
+        return;
+    }
+
+    // 5. Procediamo con l'inserimento
+    console.log("Stiamo inserendo il piatto per l'utente:", user.id);
+
+    if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
+        piatti = [];
+        let onboardingBanner = document.getElementById("welcome-onboarding");
+        if (onboardingBanner) onboardingBanner.style.display = "none";
+    }
+
     let { data: insData, error: insError } = await _supabase.from('piatti').insert([{
-        user_id: user.id, 
+        user_id: user.id, // Usiamo l'ID che abbiamo appena recuperato
         nome: "Nuovo Piatto", 
         vendita: 10.00, 
         costo_ieri: 0, 
         costo_oggi: 0, 
         ricetta: "[]"
     }]).select();
-}
-
-    piatti = piatti.filter(p => p.id != id);
     
-    if (piatti.length === 0 && typeof caricaPiattiDalDatabase === "function") {
-        caricaPiattiDalDatabase();
-    } else {
-        renderTabella();
+    if (insError) {
+        console.error("Errore inserimento:", insError);
+        return alert("Errore inserimento: " + insError.message);
     }
-
+    
+    piatti.push(insData[0]);
+    renderTabella();
+}
 function renderTabellaIngredienti() {
     let tbody = document.getElementById("ricetta-body");
     if (!tbody) return;
