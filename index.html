@@ -703,7 +703,6 @@ function renderTabella() {
         let isDemoId = String(piatto.id).startsWith("demo-");
         let tr = document.createElement("tr");
 
-        // 1. Calcolo del MARGINE DI GUADAGNO REALE (Invece del Food Cost rovesciato)
         let prezzoVendita = parseFloat(piatto.vendita) || 0;
         let costoAttuale = parseFloat(piatto.costo_oggi) || 0;
         
@@ -711,26 +710,20 @@ function renderTabella() {
         let foodCostPercentuale = 0;
 
         if (prezzoVendita > 0) {
-            // Formula corretta del margine: ((Prezzo - Costo) / Prezzo) * 100
             marginePercentuale = parseFloat((((prezzoVendita - costoAttuale) / prezzoVendita) * 100).toFixed(1));
-            // Ci serve ancora il Food Cost per capire se lanciare l'allarme
             foodCostPercentuale = parseFloat(((costoAttuale / prezzoVendita) * 100).toFixed(1));
         }
 
-        // 2. Alert visivo basato sulla salute del Margine
         let indicatoreMargine = `✅ Ottimo (${marginePercentuale}%)`;
         let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em;";
         
-        // Se il Food Cost supera il 35%, il margine scende sotto il 65%: ALLARME!
         if (foodCostPercentuale > 35) {
             indicatoreMargine = `⚠️ Food Cost Alto (${foodCostPercentuale}%)`;
             stileBadge = "background-color: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;";
         } else if (prezzoVendita > 0) {
-            // Se va bene, mostra il Margine di Guadagno pulito (es. 93.3% per la Carbonara!)
             indicatoreMargine = `✅ Ottimo (${marginePercentuale}%)`;
         }
 
-        // 3. Icona del Trend rispetto a ieri
         let trendIcona = "➡️";
         if (parseFloat(piatto.costo_oggi) > parseFloat(piatto.costo_ieri)) {
             trendIcona = "🔺";
@@ -738,7 +731,6 @@ function renderTabella() {
             trendIcona = "🔻";
         }
 
-        // COSTRUZIONE SICURA DELL'HTML
         tr.innerHTML = `
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
@@ -764,19 +756,18 @@ function renderTabella() {
         tbody.appendChild(tr);
     });
 
-    // 🌟 CHIAMATA AUTOMATICA: Ogni volta che la tabella viene renderizzata, aggiorna il widget in alto!
+    // Avvia l'aggiornamento del widget senza rompere il flusso
     aggiornaWidgetGuadagno();
 }
 
-// 📈 NUOVA FUNZIONE DEL GUADAGNO (Sincronizzata al 100% con le variabili del tuo database)
 function aggiornaWidgetGuadagno() {
-    const targetOttimale = 70; // Target di margine: 70%
+    const targetOttimale = 70; 
     let sommaMargini = 0;
     let piattiValidi = 0;
     
     if (typeof piatti !== 'undefined' && piatti && piatti.length > 0) {
         piatti.forEach(p => {
-            let prezzo = parseFloat(p.vendita) || 0; // Usiamo 'p.vendita' come nel tuo database
+            let prezzo = parseFloat(p.vendita) || 0; 
             let costo = parseFloat(p.costo_oggi) || 0;
             
             if (prezzo > 0) {
@@ -788,12 +779,10 @@ function aggiornaWidgetGuadagno() {
     }
 
     let margineMedio = piattiValidi > 0 ? (sommaMargini / piattiValidi) : 0;
-    
     let riempimentoBarra = (margineMedio / targetOttimale) * 100;
     if (riempimentoBarra > 100) riempimentoBarra = 100;
     if (riempimentoBarra < 0) riempimentoBarra = 0;
 
-    // Aggiorniamo l'interfaccia
     if (document.getElementById("percentuale-guadagno-reale")) {
         document.getElementById("percentuale-guadagno-reale").innerText = margineMedio.toFixed(0) + "%";
     }
@@ -804,7 +793,6 @@ function aggiornaWidgetGuadagno() {
         document.getElementById("barra-progresso").style.width = riempimentoBarra + "%";
     }
 
-    // Gestione dei messaggi di incitamento
     let messaggioElem = document.getElementById("messaggio-incitamento");
     let barraElem = document.getElementById("barra-progresso");
     
@@ -812,14 +800,14 @@ function aggiornaWidgetGuadagno() {
         if (margineMedio >= targetOttimale) {
             messaggioElem.innerHTML = "🎉 Margini eccellenti! Il menu è super ottimizzato.";
             messaggioElem.style.color = "#10b981";
-            barraElem.style.background = "#10b981"; // Verde
+            barraElem.style.background = "#10b981"; 
         } else if (margineMedio >= 50) {
-            messaggioElem.innerText = "⚠️ Margine accettabile, ma puoi fare di meglio sui piatti costosi.";
-            messaggioElem.style.color = "#f59e0b"; // Arancione
+            messaggioElem.innerText = "⚠️ Margine accettabile, ma puoi fare di meglio.";
+            messaggioElem.style.color = "#f59e0b"; 
             barraElem.style.background = "linear-gradient(90deg, #f59e0b, #10b981)";
         } else {
-            messaggioElem.innerText = "🚨 Pericolo: I costi delle materie prime sono troppo alti!";
-            messaggioElem.style.color = "#ef4444"; // Rosso
+            messaggioElem.innerText = "🚨 Pericolo: I costi sono troppo alti!";
+            messaggioElem.style.color = "#ef4444"; 
             barraElem.style.background = "#ef4444";
         }
     }
