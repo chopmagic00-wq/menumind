@@ -700,40 +700,50 @@ function renderTabella() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
+    // Contatori per il calcolo del Margine Medio Globale (se usi le due card in alto)
+    let sommaMargini = 0;
+    let piattiConPrezzo = 0;
+
     piatti.forEach((piatto) => {
         let isDemoId = String(piatto.id).startsWith("demo-");
         let tr = document.createElement("tr");
 
-        let prezzoVendita = parseFloat(piatto.vendita) || 0;
-        let costoAttuale = parseFloat(piatto.costo_oggi) || 0;
+        // Forza la conversione in numeri reali e pulisce eventuali testi/stringhe
+        let prezzoVendita = parseFloat(String(piatto.vendita).replace(',', '.')) || 0;
+        let costoAttuale = parseFloat(String(piatto.costo_oggi).replace(',', '.')) || 0;
         
-        // 1. CALCOLO DEL MARGINE DI GUADAGNO REALE (Invece del Food Cost)
+        // 1. CALCOLO DEL MARGINE DI GUADAGNO REALE
         let marginePercentuale = 0;
         if (prezzoVendita > 0) {
             marginePercentuale = parseFloat((((prezzoVendita - costoAttuale) / prezzoVendita) * 100).toFixed(1));
+            
+            // Accumula per la card globale
+            sommaMargini += marginePercentuale;
+            piattiConPrezzo++;
         }
 
-        // 2. Alert visivo basato sul MARGINE (Ottimo se sopra il 65%)
+        // 2. Alert visivo basato sul MARGINE (Verde se >= 65%, altrimenti Rosso)
         let indicatoreMargine = "✅ OK";
-        let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em;";
+        let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; display: inline-block;";
         
         if (prezzoVendita > 0) {
-            if (marginePercentuale < 65) { // Se guadagni meno del 65%, il Food Cost è troppo alto (>35%)
+            if (marginePercentuale < 65) { 
                 indicatoreMargine = `⚠️ Margine Basso (${marginePercentuale}%)`;
-                stileBadge = "background-color: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;";
+                stileBadge = "background-color: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; display: inline-block; animation: pulse 2s infinite;";
             } else {
                 indicatoreMargine = `✅ Margine Ottimo (${marginePercentuale}%)`;
             }
         } else {
-            indicatoreMargine = "N/D";
-            stileBadge = "background-color: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;";
+            indicatoreMargine = "Inserisci Prezzo";
+            stileBadge = "background-color: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 4px; font-size: 0.9em; display: inline-block;";
         }
 
         // 3. Icona del Trend rispetto a ieri
         let trendIcona = "➡️";
-        if (piatto.costo_oggi > piatto.costo_ieri) {
+        let costoIeriNum = parseFloat(String(piatto.costo_ieri).replace(',', '.')) || 0;
+        if (costoAttuale > costoIeriNum) {
             trendIcona = "🔺";
-        } else if (piatto.costo_oggi < piatto.costo_ieri) {
+        } else if (costoAttuale < costoIeriNum) {
             trendIcona = "🔻";
         }
 
@@ -763,8 +773,9 @@ function renderTabella() {
         tbody.appendChild(tr);
     });
 
-    // Se hai anche le funzioni dei widget sotto, ricordati di chiamarle qui fuori dal ciclo:
+    // Rinfresca automaticamente le card statistiche esterne (se presenti)
     if (typeof aggiornaWidgetRisparmio === 'function') aggiornaWidgetRisparmio();
+    if (typeof aggiornaWidgetMargineMedio === 'function') aggiornaWidgetMargineMedio(piattiConPrezzo > 0 ? (sommaMargini / piattiConPrezzo) : 0);
 }
 function aggiornaWidgetRisparmio(risparmioEffettivo = 0) {
     const obiettivoMensile = 500; 
