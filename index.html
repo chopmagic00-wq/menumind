@@ -1182,8 +1182,9 @@ async function gestisciAuth(e) {
     if (e) e.preventDefault();
     console.log("Tentativo di accesso avviato...");
     
-   <div id="main-app" style="display: none; max-width: 1100px; margin: 0 auto;">
-   <div id=document.getElementById("dashboard-screen").style.display = "block";>
+   let authScreen = document.getElementById("auth-screen") || document.querySelector("[id*='auth-screen']");
+    let mainApp = document.getElementById("main-app");
+    
     </div>
     
     if (authScreen) authScreen.style.display = "none";
