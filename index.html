@@ -591,16 +591,16 @@
             caricaPiattiDalDatabase();
         }
 
-        function logout() {
-            _supabase.auth.signOut();
-            utenteCorrente = null;
-            isAppInPausa = false;
-            document.getElementById("dashboard-screen").style.display = "none";
-            document.getElementById("chat-toggle").style.display = "none";
-            document.getElementById("chat-box").style.display = "none";
-            document.getElementById("welcome-onboarding").style.display = "none";
-            document.getElementById("auth-screen").style.display = "block";
-        }
+        async function esci() {
+    try {
+        await _supabase.auth.signOut();
+        console.log("Logout effettuato");
+        // Ricarichiamo la pagina per tornare alla schermata di Login
+        window.location.reload(); 
+    } catch (error) {
+        console.error("Errore durante il logout:", error);
+    }
+}
 
         function aggiornaStatoAbbonamentoInterfaccia() {
             let dataCreazione = new Date(utenteCorrente.created_at);
@@ -936,7 +936,23 @@ function renderTabellaIngredienti() {
         tbody.appendChild(tr);
     });
 }
+async function eliminaRiga(id) {
+    // 1. Eliminiamo dal Database di Supabase
+    const { error } = await _supabase
+        .from('piatti')
+        .delete()
+        .eq('id', id);
 
+    if (error) {
+        console.error("Errore durante l'eliminazione:", error);
+        return alert("Errore: " + error.message);
+    }
+
+    // 2. Se tutto ok, aggiorniamo l'array locale e ridisegniamo la tabella
+    piatti = piatti.filter(p => p.id !== id);
+    renderTabella();
+    console.log("Piatto eliminato con successo!");
+}
 function renderTabellaIngredienti() {
     let tbody = document.getElementById("ricetta-body");
     if (!tbody) return;
