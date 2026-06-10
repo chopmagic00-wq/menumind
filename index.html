@@ -377,57 +377,36 @@
                 </p>
             </form>
         </div>
-<div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
+
+        <div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
             
-    <div id="main-guide-panel" class="guide-accordion">
-        <div class="guide-header" onclick="toggleGuida()">
-            <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
-            <span id="guide-arrow">▼</span>
-        </div>
-        <div id="guide-body" class="guide-content">
-            <div class="guide-step">
-                <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
-                <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
-                <ul>
-                    <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
-                    <li>Digita il nome reale (es. <em>Tonnarelli Cacio e Pepe</em>) e imposta il prezzo finale al pubblico.</li>
-                    <li>Clicca sull'icona del libro (📖) vicino al nome per inserire opzionalmente la ricetta base e le grammature.</li>
-                </ul>
+            <div id="main-guide-panel" class="guide-accordion">
+                <div class="guide-header" onclick="toggleGuida()">
+                    <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
+                    <span id="guide-arrow">▼</span>
+                </div>
+                <div id="guide-body" class="guide-content">
+                    <div class="guide-step">
+                        <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
+                        <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
+                        <ul>
+                            <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
+                            <li>Digita il nome reale (es. <em>Tonnarelli Cacio e Pepe</em>) e imposta il prezzo finale al pubblico.</li>
+                            <li>Clicca sull'icona del libro (📖) vicino al nome per inserire opzionalmente la ricetta base e le grammature.</li>
+                        </ul>
+                    </div>
+                    <div class="guide-step">
+                        <h4>Fase 2: Caricamento e Analisi Automatica della Fattura (AI Processing)</h4>
+                        <p>Una volta popolata la tabella, puoi automatizzare l'aggiornamento dei costi tramite scansione.</p>
+                        <ul>
+                            <li>Prepara il file o la foto chiara della fattura del fornitore (PDF, PNG o JPG).</li>
+                            <li>Clicca sul pulsante azzurro <strong>🧾 Carica Fattura con IA</strong> e seleziona il documento.</li>
+                            <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-            <div class="guide-step">
-                <h4>Fase 2: Caricamento e Analisi Automatica della Fattura (AI Processing)</h4>
-                <p>Una volta popolata la tabella, puoi automatizzare l'aggiornamento dei costi tramite scansione.</p>
-                <ul>
-                    <li>Prepara il file o la foto chiara della fattura del fornitore (PDF, PNG o JPG).</li>
-                    <li>Clicca sul pulsante azzurro <strong>🧾 Carica Fattura con IA</strong> e seleziona il documento.</li>
-                    <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
-                </ul>
-            </div>
-        </div> </div> <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 20px; margin-bottom: 20px; gap: 20px;">
-        
-       <div style="display: flex; justify-content: flex-end; align-items: center; width: 100%; margin-top: 20px; margin-bottom: 20px;">
-    
-    <div class="card-target-risparmio" style="background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 320px; margin: 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <span style="font-weight: bold; color: #1e293b; font-size: 0.95em;">📈 Margine Guadagno Medio</span>
-            <span id="percentuale-target" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 20px; font-size: 0.8em; font-weight: bold;">0%</span>
-        </div>
-        
-        <div style="margin-bottom: 8px;">
-            <span id="percentuale-guadagno-reale" style="font-size: 1.5em; font-weight: 800; color: #0f172a;">0%</span>
-            <span style="color: #64748b; font-size: 0.85em;"> / Target 70%</span>
-        </div>
 
-        <div style="width: 100%; background-color: #f1f5f9; border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 5px;">
-            <div id="barra-progresso" style="width: 0%; background: linear-gradient(90deg, #ef4444, #10b981); height: 100%; border-radius: 100px; transition: width 0.5s ease-in-out;"></div>
-        </div>
-        
-        <p id="messaggio-incitamento" style="font-size: 0.75em; color: #64748b; margin: 0; font-style: italic;">Calcolo in corso...</p>
-    </div>
-
-</div>
-
-    </div> 
             <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h3 style="margin: 0 0 5px 0; color: #0f172a;">💳 Stato Piano & Fatturazione</h3>
@@ -694,6 +673,7 @@
             
             renderTabella();
         }
+
 function renderTabella() {
     let tbody = document.getElementById("excel-body");
     if (!tbody) return;
@@ -703,34 +683,34 @@ function renderTabella() {
         let isDemoId = String(piatto.id).startsWith("demo-");
         let tr = document.createElement("tr");
 
+        // 1. Calcolo percentuale Food Cost
         let prezzoVendita = parseFloat(piatto.vendita) || 0;
         let costoAttuale = parseFloat(piatto.costo_oggi) || 0;
-        
-        let marginePercentuale = 0;
         let foodCostPercentuale = 0;
-
         if (prezzoVendita > 0) {
-            marginePercentuale = parseFloat((((prezzoVendita - costoAttuale) / prezzoVendita) * 100).toFixed(1));
             foodCostPercentuale = parseFloat(((costoAttuale / prezzoVendita) * 100).toFixed(1));
         }
 
-        let indicatoreMargine = `✅ Ottimo (${marginePercentuale}%)`;
+        // 2. Alert visivo del Margine
+        let indicatoreMargine = "✅ OK";
         let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em;";
         
         if (foodCostPercentuale > 35) {
             indicatoreMargine = `⚠️ Food Cost Alto (${foodCostPercentuale}%)`;
             stileBadge = "background-color: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;";
-        } else if (prezzoVendita > 0) {
-            indicatoreMargine = `✅ Ottimo (${marginePercentuale}%)`;
+        } else if (foodCostPercentuale > 0) {
+            indicatoreMargine = `✅ Ottimo (${foodCostPercentuale}%)`;
         }
 
+        // 3. Icona del Trend rispetto a ieri
         let trendIcona = "➡️";
-        if (parseFloat(piatto.costo_oggi) > parseFloat(piatto.costo_ieri)) {
+        if (piatto.costo_oggi > piatto.costo_ieri) {
             trendIcona = "🔺";
-        } else if (parseFloat(piatto.costo_oggi) < parseFloat(piatto.costo_ieri)) {
+        } else if (piatto.costo_oggi < piatto.costo_ieri) {
             trendIcona = "🔻";
         }
 
+        // COSTRUZIONE SICURA DELL'HTML (Senza conflitti di apici o virgolette)
         tr.innerHTML = `
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
@@ -755,94 +735,6 @@ function renderTabella() {
         `;
         tbody.appendChild(tr);
     });
-
-    // Avvia l'aggiornamento del widget senza rompere il flusso
-    aggiornaWidgetGuadagno();
-}
-
-function aggiornaWidgetGuadagno() {
-    const targetOttimale = 70; 
-    let sommaMargini = 0;
-    let piattiValidi = 0;
-    
-    if (typeof piatti !== 'undefined' && piatti && piatti.length > 0) {
-        piatti.forEach(p => {
-            let prezzo = parseFloat(p.vendita) || 0; 
-            let costo = parseFloat(p.costo_oggi) || 0;
-            
-            if (prezzo > 0) {
-                let marginePiatto = ((prezzo - costo) / prezzo) * 100;
-                sommaMargini += marginePiatto;
-                piattiValidi++;
-            }
-        });
-    }
-
-    let margineMedio = piattiValidi > 0 ? (sommaMargini / piattiValidi) : 0;
-    let riempimentoBarra = (margineMedio / targetOttimale) * 100;
-    if (riempimentoBarra > 100) riempimentoBarra = 100;
-    if (riempimentoBarra < 0) riempimentoBarra = 0;
-
-    if (document.getElementById("percentuale-guadagno-reale")) {
-        document.getElementById("percentuale-guadagno-reale").innerText = margineMedio.toFixed(0) + "%";
-    }
-    if (document.getElementById("percentuale-target")) {
-        document.getElementById("percentuale-target").innerText = riempimentoBarra.toFixed(0) + "% del Target";
-    }
-    if (document.getElementById("barra-progresso")) {
-        document.getElementById("barra-progresso").style.width = riempimentoBarra + "%";
-    }
-
-    let messaggioElem = document.getElementById("messaggio-incitamento");
-    let barraElem = document.getElementById("barra-progresso");
-    
-    if (messaggioElem && barraElem) {
-        if (margineMedio >= targetOttimale) {
-            messaggioElem.innerHTML = "🎉 Margini eccellenti! Il menu è super ottimizzato.";
-            messaggioElem.style.color = "#10b981";
-            barraElem.style.background = "#10b981"; 
-        } else if (margineMedio >= 50) {
-            messaggioElem.innerText = "⚠️ Margine accettabile, ma puoi fare di meglio.";
-            messaggioElem.style.color = "#f59e0b"; 
-            barraElem.style.background = "linear-gradient(90deg, #f59e0b, #10b981)";
-        } else {
-            messaggioElem.innerText = "🚨 Pericolo: I costi sono troppo alti!";
-            messaggioElem.style.color = "#ef4444"; 
-            barraElem.style.background = "#ef4444";
-        }
-    }
-}
-
-    // CORRETTO: Usiamo 'obiettivoMensile' invece di 'maxObiettivo' per evitare l'errore
-    let percentuale = (risparmioEffettivo / obiettivoMensile) * 100;
-    if (percentuale > 100) percentuale = 100; // Blocchiamo la barra al 100% massimo
-    
-    // Aggiorniamo i testi e la barra nell'HTML
-    if (document.getElementById("soldi-risparmiati")) {
-        document.getElementById("soldi-risparmiati").innerText = risparmioEffettivo.toFixed(2) + " €";
-    }
-    if (document.getElementById("percentuale-target")) {
-        document.getElementById("percentuale-target").innerText = percentuale.toFixed(0) + "%";
-    }
-    if (document.getElementById("barra-progresso")) {
-        document.getElementById("barra-progresso").style.width = percentuale + "%";
-    }
-
-    // Cambiamo messaggio in base al progresso
-    let messaggioElem = document.getElementById("messaggio-incitamento");
-    if (messaggioElem) {
-        if (percentuale >= 100) {
-            messaggioElem.innerHTML = "🎉 Obiettivo Mensile Raggiunto! Sei un grande Chef d'Azienda!";
-            messaggioElem.style.color = "#10b981"; // Testo Verde Vittoria
-        } else if (percentuale > 50) {
-            messaggioElem.innerText = "🚀 Ottimo lavoro! Sei a più di metà strada.";
-            messaggioElem.style.color = "#3b82f6"; // Testo Blu
-        } else {
-            messaggioElem.innerText = "Carica la prossima fattura per scovare altri rincari!";
-            messaggioElem.style.color = "#64748b"; // Testo Grigio standard
-        }
-    }
-}
 }
         async function aggiungiRiga() {
             if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
@@ -1114,13 +1006,17 @@ const payload = {
             throw new Error(`Server Error ${response.status}: ${erroreTesto}`);
         }
 
-   const rispostaJson = await response.json();
+      const rispostaJson = await response.json();
+        
+        // CONTROLLO SICUREZZA: Rimuove il caricamento solo se la variabile e l'elemento esistono
         if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
             document.getElementById(loadingId).remove();
         }
 
+        // CONTROLLO DI SICUREZZA: Vediamo cosa ci ha risposto esattamente la funzione
         console.log("Oggetto ricevuto da Supabase:", rispostaJson);
 
+        // Cerchiamo il testo della risposta in tutte le chiavi possibili
         let testoRisposta = rispostaJson.rispostaChat || 
                             rispostaJson.risposta || 
                             rispostaJson.testo || 
@@ -1128,39 +1024,18 @@ const payload = {
                             rispostaJson.text ||
                             rispostaJson.reply;
 
+        // Se la funzione usa un formato nidificato (es. rispostaJson.dati.risposta)
         if (!testoRisposta && rispostaJson.dati) {
             testoRisposta = rispostaJson.dati.rispostaChat || rispostaJson.dati.risposta || rispostaJson.dati.text;
         }
 
+        // Se abbiamo trovato del testo in qualunque forma, lo stampiamo
         if (testoRisposta) {
             stampaMessaggioInChat(testoRisposta, "bot");
         } else {
+            // Se non c'è proprio testo, ti mostriamo la struttura reale per capire l'errore
             stampaMessaggioInChat(`🤖 Ricevuto JSON ma senza testo leggibile. Struttura: ${JSON.stringify(rispostaJson)}`, "bot");
         }
-
-    } catch (errore) {
-        console.error("Errore dettagliato chat:", errore);
-        if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
-            document.getElementById(loadingId).remove();
-        }
-        stampaMessaggioInChat(`❌ Errore: ${errore.message}`, "bot");
-    }
-} // <-- Questa chiude inviaMessaggioChat
-
-function stampaMessaggioInChat(testo, autore) {
-    let boxMessaggi = document.getElementById("chat-messages");
-    let divMsg = document.createElement("div");
-    let uniqueId = "msg-" + Date.now() + Math.floor(Math.random() * 1000);
-    
-    divMsg.id = uniqueId;
-    divMsg.className = `message ${autore}`;
-    divMsg.innerText = testo;
-    
-    boxMessaggi.appendChild(divMsg);
-    boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
-    
-    return uniqueId;
-} // <-- Questa chiude stampaMessaggioInChat
 
         function stampaMessaggioInChat(testo, autore) {
             let boxMessaggi = document.getElementById("chat-messages");
