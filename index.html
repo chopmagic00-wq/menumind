@@ -425,7 +425,7 @@
         <p id="messaggio-incitamento" style="font-size: 0.75em; color: #64748b; margin: 0; font-style: italic;">Calcolo in corso...</p>
     </div>
 
-</div> ```
+</div> 
 
     </div> 
             <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
@@ -731,7 +731,7 @@ function renderTabella() {
             trendIcona = "🔻";
         }
 
-        // COSTRUZIONE SICURA DELL'HTML (Senza conflitti di apici o virgolette)
+        // COSTRUZIONE SICURA DELL'HTML
         tr.innerHTML = `
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
@@ -756,27 +756,27 @@ function renderTabella() {
         `;
         tbody.appendChild(tr);
     });
-    function aggiornaWidgetRisparmio(risparmioEffettivo = 0) {
-    const obiettivoMensile = 500; // Il ristoratore vuole risparmiare 500€ al mese
+
+    // CHIAMATA AUTOMATICA: Aggiorna i grafici e i contatori ogni volta che la tabella cambia!
+    aggiornaWidgetRisparmio();
+}
+
+// SECONDA FUNZIONE: COMPLETAMENTE STACCATA E AUTONOMA
+function aggiornaWidgetRisparmio(risparmioEffettivo = 0) {
+    const obiettivoMensile = 500; 
     
-    // Se non passiamo un valore specifico, calcoliamolo dai piatti in tabella
     if (risparmioEffettivo === 0 && typeof piatti !== 'undefined' && piatti) {
         piatti.forEach(p => {
-            // Calcoliamo la differenza tra costo vecchio (ieri) e costo nuovo (oggi)
             let variazione = (parseFloat(p.costo_ieri) || 0) - (parseFloat(p.costo_oggi) || 0);
-            
-            // Se la variazione è positiva, significa che lo Chef ha risparmiato ottimizzando il piatto!
             if (variazione > 0) {
-                risparmioEffettivo += variazione * 100; // Moltiplichiamo per 100 vendite ipotetiche
+                risparmioEffettivo += variazione * 100; 
             }
         });
     }
 
-    // CORRETTO: Usiamo 'obiettivoMensile' invece di 'maxObiettivo' per evitare l'errore
     let percentuale = (risparmioEffettivo / obiettivoMensile) * 100;
-    if (percentuale > 100) percentuale = 100; // Blocchiamo la barra al 100% massimo
+    if (percentuale > 100) percentuale = 100; 
     
-    // Aggiorniamo i testi e la barra nell'HTML
     if (document.getElementById("soldi-risparmiati")) {
         document.getElementById("soldi-risparmiati").innerText = risparmioEffettivo.toFixed(2) + " €";
     }
@@ -787,21 +787,19 @@ function renderTabella() {
         document.getElementById("barra-progresso").style.width = percentuale + "%";
     }
 
-    // Cambiamo messaggio in base al progresso
     let messaggioElem = document.getElementById("messaggio-incitamento");
     if (messaggioElem) {
         if (percentuale >= 100) {
             messaggioElem.innerHTML = "🎉 Obiettivo Mensile Raggiunto! Sei un grande Chef d'Azienda!";
-            messaggioElem.style.color = "#10b981"; // Testo Verde Vittoria
+            messaggioElem.style.color = "#10b981"; 
         } else if (percentuale > 50) {
             messaggioElem.innerText = "🚀 Ottimo lavoro! Sei a più di metà strada.";
-            messaggioElem.style.color = "#3b82f6"; // Testo Blu
+            messaggioElem.style.color = "#3b82f6"; 
         } else {
             messaggioElem.innerText = "Carica la prossima fattura per scovare altri rincari!";
-            messaggioElem.style.color = "#64748b"; // Testo Grigio standard
+            messaggioElem.style.color = "#64748b"; 
         }
     }
-}
 }
         async function aggiungiRiga() {
             if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
