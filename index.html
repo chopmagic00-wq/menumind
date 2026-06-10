@@ -870,51 +870,45 @@ async function controllaSessione() {
 
 // 3. FUNZIONE AGGIUNGI RIGA (Aggiornata per usare l'utente al volo)
 async function aggiungiRiga() {
-    // 1. Chiamiamo Supabase
-    const { data, error } = await _supabase.auth.getUser();
+    try {
+        // Proviamo a recuperare l'utente
+        const { data: { user }, error } = await _supabase.auth.getUser();
 
-    // 2. Controllo errori tecnici
-    if (error) {
-        console.error("Errore di autenticazione:", error);
-        alert("Errore tecnico nel verificare l'utente.");
-        return;
+        // Se c'è un errore tecnico o non c'è l'utente, gestiamolo
+        if (error || !user) {
+            throw new Error("Sessione scaduta o non trovata");
+        }
+
+        // Se arriviamo qui, l'utente è loggato
+        if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
+            piatti = [];
+            let onboardingBanner = document.getElementById("welcome-onboarding");
+            if (onboardingBanner) onboardingBanner.style.display = "none";
+        }
+
+        let { data: insData, error: insError } = await _supabase.from('piatti').insert([{
+            user_id: user.id, 
+            nome: "Nuovo Piatto", 
+            vendita: 10.00, 
+            costo_ieri: 0, 
+            costo_oggi: 0, 
+            ricetta: "[]"
+        }]).select();
+        
+        if (insError) throw insError;
+
+        piatti.push(insData[0]);
+        renderTabella();
+
+    } catch (err) {
+        console.error("Errore critico:", err);
+        // Invece di far crashare tutto, avvisiamo l'utente
+        alert("La sessione è scaduta. Per favore, ricarica la pagina e accedi di nuovo.");
+        
+        // Opzionale: rimandiamo alla pagina di login
+        document.getElementById("dashboard-screen").style.display = "none";
+        document.getElementById("auth-screen").style.display = "block";
     }
-
-    // 3. Estraiamo l'utente dall'oggetto data
-    // In base alla tua console, l'utente è in data.user
-    const user = data.user;
-
-    // 4. Controllo logico
-    if (!user) {
-        alert("Utente non loggato.");
-        return;
-    }
-
-    // 5. Procediamo con l'inserimento
-    console.log("Stiamo inserendo il piatto per l'utente:", user.id);
-
-    if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
-        piatti = [];
-        let onboardingBanner = document.getElementById("welcome-onboarding");
-        if (onboardingBanner) onboardingBanner.style.display = "none";
-    }
-
-    let { data: insData, error: insError } = await _supabase.from('piatti').insert([{
-        user_id: user.id, // Usiamo l'ID che abbiamo appena recuperato
-        nome: "Nuovo Piatto", 
-        vendita: 10.00, 
-        costo_ieri: 0, 
-        costo_oggi: 0, 
-        ricetta: "[]"
-    }]).select();
-    
-    if (insError) {
-        console.error("Errore inserimento:", insError);
-        return alert("Errore inserimento: " + insError.message);
-    }
-    
-    piatti.push(insData[0]);
-    renderTabella();
 }
 function renderTabellaIngredienti() {
     let tbody = document.getElementById("ricetta-body");
