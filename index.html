@@ -954,51 +954,68 @@ async function eliminaRiga(id) {
             chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
         }
 
-        async function inviaMessaggioChat() {
-            let inputElem = document.getElementById("chat-input");
-            let messaggioTesto = inputElem.value.trim();
-            if (!messaggioTesto) return;
+       async function inviaMessaggioChat() {
+    let inputElem = document.getElementById("chat-input");
+    let messaggioTesto = inputElem.value.trim();
+    if (!messaggioTesto) return;
 
-            stampaMessaggioInChat(messaggioTesto, "user");
-            inputElem.value = "";
+    stampaMessaggioInChat(messaggioTesto, "user");
+    inputElem.value = "";
 
-            let loadingId = stampaMessaggioInChat("🤖 Sto elaborando la risposta...", "bot");
+    let loadingId = stampaMessaggioInChat("🤖 Sto elaborando la risposta...", "bot");
 
-            try {
-                const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
-                const contestoPiatti = piatti.map(p => ({
-                    nome: p.nome,
-                    prezzo_vendita: p.vendita,
-                    costo_precedente: p.costo_ieri,
-                    costo_attuale: p.costo_oggi
-                }));
+    try {
+        const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
+        
+        // Protezione: se l'array piatti non esiste o è vuoto, mandiamo un array vuoto sicuro
+        const contestoPiatti = (typeof piatti !== 'undefined' && piatti) ? piatti.map(p => ({
+            nome: p.nome || "Senza nome",
+            vendita: parseFloat(p.vendita) || 0,
+            costo_ieri: parseFloat(p.costo_ieri) || 0,
+            costo_oggi: parseFloat(p.costo_oggi) || 0
+        })) : [];
 
-                const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        modalita: "chat",
-                        messaggio: messaggioTesto,
-                        contesto: contestoPiatti,
-                        lingua: linguaSelezionata
-                    })
-                });
+        // Costruiamo il payload esattamente come richiesto dalla logica della Edge Function
+        const payload = {
+            modalita: "chat",
+            messaggio: messaggioTesto,
+            contesto: contestoPiatti, 
+            lingua: linguaSelezionata
+        };
 
-                const rispostaJson = await response.json();
-                document.getElementById(loadingId).remove();
+        // CONTROLLO DI SICUREZZA: Ispeziona cosa stai mandando
+        console.log("Payload inviato alla Edge Function:", payload);
 
-                if (rispostaJson.successo && rispostaJson.rispostaChat) {
-                    stampaMessaggioInChat(rispostaJson.rispostaChat, "bot");
-                } else {
-                    stampaMessaggioInChat("Scusami Chef, ho riscontrato un problema nel calcolo dei dati. Riprova tra un attimo!", "bot");
-                }
+        const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
 
-            } catch (errore) {
-                console.error("Errore chat:", errore);
-                document.getElementById(loadingId).remove();
-                stampaMessaggioInChat("Impossibile connettersi all'assistente AI. Verifica la tua connessione.", "bot");
-            }
+        if (!response.ok) {
+            const erroreTesto = await response.text();
+            throw new Error(`Server Error ${response.status}: ${erroreTesto}`);
         }
+
+        const rispostaJson = await response.json();
+        document.getElementById(loadingId).remove();
+
+        if (rispostaJson.successo && rispostaJson.rispostaChat) {
+            stampaMessaggioInChat(rispostaJson.rispostaChat, "bot");
+        } else {
+            stampaMessaggioInChat("Scusami Chef, la richiesta è andata a buon fine ma l'IA non ha restituito testo valido.", "bot");
+        }
+
+    } catch (errore) {
+        console.error("Errore dettagliato chat:", errore);
+        if (document.getElementById(loadingId)) {
+            document.getElementById(loadingId).remove();
+        }
+        stampaMessaggioInChat(`❌ Errore: ${errore.message}`, "bot");
+    }
+}
 
         function stampaMessaggioInChat(testo, autore) {
             let boxMessaggi = document.getElementById("chat-messages");
