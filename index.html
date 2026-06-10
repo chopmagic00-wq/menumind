@@ -870,20 +870,25 @@ async function controllaSessione() {
 
 // 3. FUNZIONE AGGIUNGI RIGA (Aggiornata per usare l'utente al volo)
 async function aggiungiRiga() {
-    const { data: { user } } = await _supabase.auth.getUser();
-    
-    if (!user) {
-        alert("Errore: Utente non loggato.");
+    // Aggiungiamo un log per vedere cosa risponde Supabase
+    const { data, error } = await _supabase.auth.getUser();
+    console.log("Risposta di Supabase.auth.getUser():", { data, error });
+
+    if (error) {
+        alert("Errore tecnico: " + error.message);
         return;
     }
 
-    if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
-        piatti = [];
-        let onboardingBanner = document.getElementById("welcome-onboarding");
-        if (onboardingBanner) onboardingBanner.style.display = "none";
+    if (!data.user) {
+        alert("Utente non loggato. Controlla di aver fatto il login correttamente.");
+        return;
     }
 
-    let { data, error } = await _supabase.from('piatti').insert([{
+    const user = data.user;
+    // ... resto del tuo codice ...
+    
+    // Esempio di inserimento corretto:
+    let { data: insData, error: insError } = await _supabase.from('piatti').insert([{
         user_id: user.id, 
         nome: "Nuovo Piatto", 
         vendita: 10.00, 
@@ -891,23 +896,7 @@ async function aggiungiRiga() {
         costo_oggi: 0, 
         ricetta: "[]"
     }]).select();
-    
-    if (error) return alert(error.message);
-    piatti.push(data[0]);
-    renderTabella();
 }
-
-// 4. AVVIO
-controllaSessione();
-async function eliminaRiga(id) {
-    if (!confirm("Sei sicuro di voler eliminare questo piatto?")) return;
-
-    const { error } = await _supabase.from('piatti').delete().eq('id', id);
-    if (error) {
-        console.error("Errore durante l'eliminazione su Supabase:", error);
-        alert("Impossibile eliminare il piatto dal database.");
-        return;
-    }
 
     piatti = piatti.filter(p => p.id != id);
     
