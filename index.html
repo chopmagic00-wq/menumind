@@ -766,75 +766,42 @@ function renderTabella() {
     // Se hai anche le funzioni dei widget sotto, ricordati di chiamarle qui fuori dal ciclo:
     if (typeof aggiornaWidgetRisparmio === 'function') aggiornaWidgetRisparmio();
 }
-function aggiornaWidgetGuadagno() {
-    const targetOttimale = 70; // 70%
-    let sommaMargini = 0;
-    let piattiValidi = 0;
-
-    // Seleziona tutte le righe della tua tabella (cambia 'tbody tr' se usi una classe specifica)
-    const righeTabella = document.querySelectorAll("table tbody tr, .tabella-piatti-riga");
-
-    righeTabella.forEach(riga => {
-        // Cerchiamo i campi di input del prezzo e del costo dentro la riga
-        // NOTA: Se usi dei tag <input>, questa logica prenderà i valori digitati a schermo dallo Chef
-        const inputPrezzo = riga.querySelector("input[type='number'], .classe-prezzo"); 
-        const inputCosto = riga.querySelector("input[type='number']:nth-of-type(2), .classe-costo_oggi");
-
-        // Se non trova gli input specifici, cerchiamo un qualsiasi input nella riga
-        const inputs = riga.querySelectorAll("input");
-        
-        let prezzo = 0;
-        let costo = 0;
-
-        if (inputs.length >= 2) {
-            prezzo = parseFloat(inputs[0].value) || 0;
-            // Se hai 3 input (Prezzo, Costo Ieri, Costo Oggi), prendiamo il terzo input (indice 2)
-            costo = inputs.length >= 3 ? (parseFloat(inputs[2].value) || 0) : (parseFloat(inputs[1].value) || 0);
-        }
-
-        if (prezzo > 0) {
-            let marginePiatto = ((prezzo - costo) / prezzo) * 100;
-            sommaMargini += marginePiatto;
-            piattiValidi++;
-        }
-    });
-
-    // Calcolo della media del ristorante
-    let margineMedio = piattiValidi > 0 ? (sommaMargini / piattiValidi) : 0;
+function aggiornaWidgetRisparmio(risparmioEffettivo = 0) {
+    const obiettivoMensile = 500; 
     
-    // Percentuale di riempimento rispetto al target del 70%
-    let riempimentoBarra = (margineMedio / targetOttimale) * 100;
-    if (riempimentoBarra > 100) riempimentoBarra = 100;
-    if (riempimentoBarra < 0) riempimentoBarra = 0;
+    if (risparmioEffettivo === 0 && typeof piatti !== 'undefined' && piatti) {
+        piatti.forEach(p => {
+            let variazione = (parseFloat(p.costo_ieri) || 0) - (parseFloat(p.costo_oggi) || 0);
+            if (variazione > 0) {
+                risparmioEffettivo += variazione * 100; 
+            }
+        });
+    }
 
-    // Aggiorna l'interfaccia grafica
-    if (document.getElementById("percentuale-guadagno-reale")) {
-        document.getElementById("percentuale-guadagno-reale").innerText = margineMedio.toFixed(0) + "%";
+    let percentuale = (risparmioEffettivo / obiettivoMensile) * 100;
+    if (percentuale > 100) percentuale = 100; 
+    
+    if (document.getElementById("soldi-risparmiati")) {
+        document.getElementById("soldi-risparmiati").innerText = risparmioEffettivo.toFixed(2) + " €";
     }
     if (document.getElementById("percentuale-target")) {
-        document.getElementById("percentuale-target").innerText = riempimentoBarra.toFixed(0) + "% del Target";
+        document.getElementById("percentuale-target").innerText = percentuale.toFixed(0) + "%";
     }
     if (document.getElementById("barra-progresso")) {
-        document.getElementById("barra-progresso").style.width = riempimentoBarra + "%";
+        document.getElementById("barra-progresso").style.width = percentuale + "%";
     }
 
-    // Gestione colori e messaggi
     let messaggioElem = document.getElementById("messaggio-incitamento");
-    let barraElem = document.getElementById("barra-progresso");
-    
-    if (messaggioElem && barraElem) {
-        if (margineMedio >= targetOttimale) {
-            messaggioElem.innerHTML = "🎉 Margini eccellenti! Il menu è super ottimizzato.";
-            messaggioElem.style.color = "#10b981";
-            barraElem.style.background = "#10b981";
-        } else if (margineMedio >= 50) {
-            messaggioElem.innerText = "⚠️ Margine accettabile, ma puoi fare di meglio.";
-            messaggioElem.style.color = "#f59e0b";
-            barraElem.style.background = "linear-gradient(90deg, #f59e0b, #10b981)";
+    if (messaggioElem) {
+        if (percentuale >= 100) {
+            messaggioElem.innerHTML = "🎉 Obiettivo Mensile Raggiunto! Sei un grande Chef d'Azienda!";
+            messaggioElem.style.color = "#10b981"; 
+        } else if (percentuale > 50) {
+            messaggioElem.innerText = "🚀 Ottimo lavoro! Sei a più di metà strada.";
+            messaggioElem.style.color = "#3b82f6"; 
         } else {
-            messaggioElem.innerText = "🚨 Pericolo: I costi sono troppo alti!";
-            messaggioElem.style.color = "#ef4444";
-            barraElem.style.background = "#ef4444";
+            messaggioElem.innerText = "Carica la prossima fattura per scovare altri rincari!";
+            messaggioElem.style.color = "#64748b"; 
         }
     }
 }
