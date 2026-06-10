@@ -753,18 +753,14 @@ function renderTabella() {
                 <button class="btn btn-danger" onclick="eliminaRiga('${piatto.id}')">Elimina</button>
             </td>
         `;
+        
+        // CORRETTO: appendChild è DENTRO il ciclo, prima della chiusura forEach
         tbody.appendChild(tr);
-    });
+    }); 
 
-    // Avvia l'aggiornamento del widget senza rompere il flusso
+    // CORRETTO: l'aggiornamento avviene FUORI, a tabella ultimata
     aggiornaWidgetGuadagno();
-    // ... fine della funzione renderTabella che abbiamo sistemato prima
-        tbody.appendChild(tr);
-    }; // <-- Chiude correttamente il piatti.forEach
-
-    aggiornaWidgetGuadagno(); // <-- Aggiorna la barra in alto // <-- Chiude DEFINITIVAMENTE la funzione renderTabella()
-
-// Da qui in poi il codice continua regolarmente...
+}
 let piattoInModificaRicetta = null;
 
 function apriModalRicetta(idPiatto) {
@@ -897,9 +893,7 @@ async function eliminaRiga(id) {
     
     if (piatti.length === 0) {
         caricaPiattiDalDatabase();
-    } else {
-        renderTabella();
-    }
+    } else
 }
 
         function apriModalRicetta(id) {
