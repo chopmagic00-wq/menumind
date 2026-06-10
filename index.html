@@ -386,7 +386,7 @@
         </div>
         <div id="guide-body" class="guide-content">
             <div class="guide-step">
-                <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
+                <h3>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
                 <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
                 <ul>
                     <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
@@ -477,7 +477,7 @@
                 
                 <div id="risposta-ai" style="margin: 10px 20px; padding: 10px; background: #f3e8ff; border-left: 4px solid #7c3aed; border-radius: 4px; display: none; font-size: 13px;"></div>
 
-               <table class="excel-table" style="margin-bottom: 20px;">
+              <table class="excel-table">
     <thead>
         <tr>
             <th>Nome Piatto</th>
@@ -737,7 +737,7 @@ function renderTabella() {
         }
 
         // Costruzione HTML della riga della tabella
-        tr.innerHTML = `
+        tr.innerHTML = 
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
                 <input type="text" value="${piatto.nome || ''}" onchange="aggiornaDato('${piatto.id}', 'nome', this.value)" style="border:none; background:transparent; font-weight:500;">
