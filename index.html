@@ -758,6 +758,42 @@ function renderTabella() {
 
     // Avvia l'aggiornamento del widget senza rompere il flusso
     aggiornaWidgetGuadagno();
+    // ... fine della funzione renderTabella che abbiamo sistemato prima
+        tbody.appendChild(tr);
+    });
+
+    aggiornaWidgetGuadagno();
+} // <-- Questa è la fine di renderTabella
+
+// 🆕 INCOLLALO ESATTAMENTE QUI, SUBITO SOTTO!
+
+let piattoInModificaRicetta = null; 
+
+function apriModalRicetta(idPiatto) {
+    piattoInModificaRicetta = idPiatto;
+    let piatto = piatti.find(p => String(p.id) === String(idPiatto));
+    
+    let titoloElem = document.getElementById("modal-titolo-piatto");
+    if (titoloElem && piatto) {
+        titoloElem.innerText = `Ingredienti e Grammature: ${piatto.nome || 'Nuovo Piatto'}`;
+    }
+
+    let modal = document.getElementById("ricetta-modal");
+    if (modal) {
+        modal.style.display = "block"; 
+    } else {
+        console.error("Errore: Non trovo l'ID ricetta-modal");
+    }
+}
+
+function chiudiModalRicetta() {
+    let modal = document.getElementById("ricetta-modal");
+    if (modal) {
+        modal.style.display = "none"; 
+    }
+}
+
+// ... da qui in poi può continuare il resto del tuo codice vecchio (es. aggiornaWidgetGuadagno, ecc.)
 }
 
 function aggiornaWidgetGuadagno() {
