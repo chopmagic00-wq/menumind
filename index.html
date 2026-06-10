@@ -377,60 +377,58 @@
                 </p>
             </form>
         </div>
-
-        <div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
+<div id="dashboard-screen" style="display: none; max-width: 1100px; margin: 0 auto;">
             
-            <div id="main-guide-panel" class="guide-accordion">
-                <div class="guide-header" onclick="toggleGuida()">
-                    <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
-                    <span id="guide-arrow">▼</span>
-                </div>
-                <div id="guide-body" class="guide-content">
-                    <div class="guide-step">
-                        <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
-                        <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
-                        <ul>
-                            <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
-                            <li>Digita il nome reale (es. <em>Tonnarelli Cacio e Pepe</em>) e imposta il prezzo finale al pubblico.</li>
-                            <li>Clicca sull'icona del libro (📖) vicino al nome per inserire opzionalmente la ricetta base e le grammature.</li>
-                        </ul>
-                    </div>
-                    <div class="guide-step">
-                        <h4>Fase 2: Caricamento e Analisi Automatica della Fattura (AI Processing)</h4>
-                        <p>Una volta popolata la tabella, puoi automatizzare l'aggiornamento dei costi tramite scansione.</p>
-                        <ul>
-                            <li>Prepara il file o la foto chiara della fattura del fornitore (PDF, PNG o JPG).</li>
-                            <li>Clicca sul pulsante azzurro <strong>🧾 Carica Fattura con IA</strong> e seleziona il documento.</li>
-                            <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
-                        </ul>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 20px; gap: 20px;">
-    </div>
-    <div style="display: flex; gap: 10px;">
-        <button class="btn">Aggiungi piatto</button>
-        <button class="btn">Inserisci fattura</button>
-    </div>
-
-    <div class="card-target-risparmio" style="background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 320px; margin: 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-            <span style="font-weight: bold; color: #1e293b; font-size: 0.95em;">🎯 Target Risparmio</span>
-            <span id="percentuale-target" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 20px; font-size: 0.8em; font-weight: bold;">0%</span>
+    <div id="main-guide-panel" class="guide-accordion">
+        <div class="guide-header" onclick="toggleGuida()">
+            <span>📖 Guida Operativa MenuMind AI (Onboarding Standard)</span>
+            <span id="guide-arrow">▼</span>
         </div>
+        <div id="guide-body" class="guide-content">
+            <div class="guide-step">
+                <h4>Fase 1: Inserimento e Configurazione dei Piatti (Menu Mapping)</h4>
+                <p>Il primo passo consiste nel mappare il tuo menu. L'IA ha bisogno di conoscere i nomi esatti dei tuoi piatti per associare le merci in futuro.</p>
+                <ul>
+                    <li>Clicca su <strong>➕ Inserisci Nuovo Piatto</strong> nella barra degli strumenti della tabella.</li>
+                    <li>Digita il nome reale (es. <em>Tonnarelli Cacio e Pepe</em>) e imposta il prezzo finale al pubblico.</li>
+                    <li>Clicca sull'icona del libro (📖) vicino al nome per inserire opzionalmente la ricetta base e le grammature.</li>
+                </ul>
+            </div>
+            <div class="guide-step">
+                <h4>Fase 2: Caricamento e Analisi Automatica della Fattura (AI Processing)</h4>
+                <p>Una volta popolata la tabella, puoi automatizzare l'aggiornamento dei costi tramite scansione.</p>
+                <ul>
+                    <li>Prepara il file o la foto chiara della fattura del fornitore (PDF, PNG o JPG).</li>
+                    <li>Clicca sul pulsante azzurro <strong>🧾 Carica Fattura con IA</strong> e seleziona il documento.</li>
+                    <li>L'IA leggerà i prezzi e aggiornerà automaticamente la tabella, attivando il badge <strong>⚠️ ALLARME PREZZI</strong> se i costi delle materie prime sono aumentati!</li>
+                </ul>
+            </div>
+        </div> </div> <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 20px; margin-bottom: 20px; gap: 20px;">
         
-        <div style="margin-bottom: 8px;">
-            <span id="soldi-risparmiati" style="font-size: 1.5em; font-weight: 800; color: #0f172a;">0.00 €</span>
-            <span style="color: #64748b; font-size: 0.85em;"> / <span id="obiettivo-target">500</span> €</span>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn">Aggiungi piatto</button>
+            <button class="btn">Inserisci fattura</button>
         </div>
 
-        <div style="width: 100%; background-color: #f1f5f9; border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 5px;">
-            <div id="barra-progresso" style="width: 0%; background: linear-gradient(90deg, #3b82f6, #10b981); height: 100%; border-radius: 100px; transition: width 0.5s ease-in-out;"></div>
-        </div>
-        
-        <p id="messaggio-incitamento" style="font-size: 0.75em; color: #64748b; margin: 0; font-style: italic;">Carica fatture per scovare i rincari!</p>
-    </div>
-                </div>
+        <div class="card-target-risparmio" style="background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 320px; margin: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <span style="font-weight: bold; color: #1e293b; font-size: 0.95em;">📈 Margine Guadagno Medio</span>
+                <span id="percentuale-target" style="background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 20px; font-size: 0.8em; font-weight: bold;">0%</span>
+            </div>
+            
+            <div style="margin-bottom: 8px;">
+                <span id="percentuale-guadagno-reale" style="font-size: 1.5em; font-weight: 800; color: #0f172a;">0%</span>
+                <span style="color: #64748b; font-size: 0.85em;"> / Target 70%</span>
             </div>
 
+            <div style="width: 100%; background-color: #f1f5f9; border-radius: 100px; height: 8px; overflow: hidden; margin-bottom: 5px;">
+                <div id="barra-progresso" style="width: 0%; background: linear-gradient(90deg, #ef4444, #10b981); height: 100%; border-radius: 100px; transition: width 0.5s ease-in-out;"></div>
+            </div>
+            
+            <p id="messaggio-incitamento" style="font-size: 0.75em; color: #64748b; margin: 0; font-style: italic;">Calcolo in corso...</p>
+        </div>
+
+    </div> 
             <div id="stripe-dashboard" style="background: white; border: 1px solid #cbd5e1; border-radius: 4px; padding: 15px 20px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center;">
                 <div>
                     <h3 style="margin: 0 0 5px 0; color: #0f172a;">💳 Stato Piano & Fatturazione</h3>
