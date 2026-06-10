@@ -597,16 +597,21 @@
             caricaPiattiDalDatabase();
         }
 
-        function logout() {
-            _supabase.auth.signOut();
-            utenteCorrente = null;
-            isAppInPausa = false;
-            document.getElementById("dashboard-screen").style.display = "none";
-            document.getElementById("chat-toggle").style.display = "none";
-            document.getElementById("chat-box").style.display = "none";
-            document.getElementById("welcome-onboarding").style.display = "none";
-            document.getElementById("auth-screen").style.display = "block";
-        }
+      async function logout() {
+
+    await _supabase.auth.signOut();
+
+    utenteCorrente = null;
+
+    document.getElementById("main-app").style.display = "none";
+    document.getElementById("auth-screen").style.display = "block";
+
+    document.getElementById("chat-toggle").style.display = "none";
+    document.getElementById("chat-box").style.display = "none";
+
+    document.getElementById("welcome-onboarding").style.display = "none";
+
+}
 
         function aggiornaStatoAbbonamentoInterfaccia() {
             let dataCreazione = new Date(utenteCorrente.created_at);
@@ -1184,6 +1189,38 @@ function cambiaModalita(modalita) {
         titolo.innerText = "Accedi a MenuMind AI";
         if (btnSubmit) btnSubmit.innerText = "Accedi";
         if (toggleText) toggleText.innerHTML = 'Non hai un account? <a href="#" onclick="cambiaModalita(\'registrazione\')">Registrati</a>';
+    }
+}
+        async function eliminaRiga(id) {
+
+    if (!confirm("Vuoi eliminare questo piatto?")) {
+        return;
+    }
+
+    try {
+
+        const { error } = await _supabase
+            .from("piatti")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+            console.error(error);
+            alert("Errore durante l'eliminazione");
+            return;
+        }
+
+        piatti = piatti.filter(
+            p => String(p.id) !== String(id)
+        );
+
+        renderTabella();
+
+    } catch (err) {
+
+        console.error(err);
+        alert("Errore: " + err.message);
+
     }
 }
 </script>
