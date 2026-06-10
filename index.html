@@ -735,7 +735,7 @@ function renderTabella() {
         }
 
         // Costruzione HTML della riga della tabella
-        tr.innerHTML = 
+        tr.innerHTML = `
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
                 <input type="text" value="${piatto.nome || ''}" onchange="aggiornaDato('${piatto.id}', 'nome', this.value)" style="border:none; background:transparent; font-weight:500;">
