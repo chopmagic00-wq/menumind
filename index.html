@@ -699,12 +699,14 @@ function renderTabella() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
+    if (typeof piatti === 'undefined' || !piatti) return;
+
     piatti.forEach((piatto) => {
-        let isDemoId = String(piatto.id).startsWith("demo-");
         let tr = document.createElement("tr");
 
         let prezzoVendita = parseFloat(piatto.vendita) || 0;
         let costoAttuale = parseFloat(piatto.costo_oggi) || 0;
+        let costoPrecedente = parseFloat(piatto.costo_ieri) || 0;
         
         let marginePercentuale = 0;
         let foodCostPercentuale = 0;
@@ -714,6 +716,7 @@ function renderTabella() {
             foodCostPercentuale = parseFloat(((costoAttuale / prezzoVendita) * 100).toFixed(1));
         }
 
+        // Alert visivo del Food Cost
         let indicatoreMargine = `✅ Ottimo (${marginePercentuale}%)`;
         let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em;";
         
@@ -724,13 +727,15 @@ function renderTabella() {
             indicatoreMargine = `✅ Ottimo (${marginePercentuale}%)`;
         }
 
+        // Icona del Trend
         let trendIcona = "➡️";
-        if (parseFloat(piatto.costo_oggi) > parseFloat(piatto.costo_ieri)) {
+        if (costoAttuale > costoPrecedente) {
             trendIcona = "🔺";
-        } else if (parseFloat(piatto.costo_oggi) < parseFloat(piatto.costo_ieri)) {
+        } else if (costoAttuale < costoPrecedente) {
             trendIcona = "🔻";
         }
 
+        // Costruzione HTML della riga della tabella
         tr.innerHTML = `
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
@@ -754,17 +759,21 @@ function renderTabella() {
             </td>
         `;
         
-        // CORRETTO: appendChild è DENTRO il ciclo, prima della chiusura forEach
+        // CORRETTO: l'inserimento della riga avviene DENTRO il ciclo piatti.forEach
         tbody.appendChild(tr);
     }); 
 
-    // CORRETTO: l'aggiornamento avviene FUORI, a tabella ultimata
+    // CORRETTO: l'aggiornamento globale avviene FUORI dal ciclo, quando la tabella è completata
     aggiornaWidgetGuadagno();
 }
-let piattoInModificaRicetta = null;
+
+// Gestione corretta delle finestre Modali Ricetta
+let piattoInModificaRicetta = null; 
 
 function apriModalRicetta(idPiatto) {
     piattoInModificaRicetta = idPiatto;
+    
+    if (typeof piatti === 'undefined' || !piatti) return;
     let piatto = piatti.find(p => String(p.id) === String(idPiatto));
     
     let titoloElem = document.getElementById("modal-titolo-piatto");
@@ -772,12 +781,20 @@ function apriModalRicetta(idPiatto) {
         titoloElem.innerText = `Ingredienti e Grammature: ${piatto.nome || 'Nuovo Piatto'}`;
     }
 
+    // Carica gli ingredienti temporanei per la tabella della ricetta
+    try {
+        ingredientiTemporanei = piatto && piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
+    } catch(e) {
+        ingredientiTemporanei = [];
+    }
+
     let modal = document.getElementById("ricetta-modal");
     if (modal) {
-        modal.style.display = "block"; 
+        modal.style.display = "flex"; 
     } else {
         console.error("Errore: Non trovo l'ID ricetta-modal");
     }
+    renderTabellaIngredienti();
 }
 
 function chiudiModalRicetta() {
@@ -787,56 +804,56 @@ function chiudiModalRicetta() {
     }
 }
 
-// ... da qui in poi può continuare il resto del tuo codice vecchio (es. aggiornaWidgetGuadagno, ecc.)
-
+// Calcolo e aggiornamento del Widget dei Guadagni
 function aggiornaWidgetGuadagno() {
-    const targetOttimale = 70; 
+    const targetOttimale = 70;
     let sommaMargini = 0;
     let piattiValidi = 0;
-    
+
     if (typeof piatti !== 'undefined' && piatti && piatti.length > 0) {
         piatti.forEach(p => {
-            let prezzo = parseFloat(p.vendita) || 0; 
+            let prezzo = parseFloat(p.vendita) || 0;
             let costo = parseFloat(p.costo_oggi) || 0;
-            
             if (prezzo > 0) {
-                let marginePiatto = ((prezzo - costo) / prezzo) * 100;
-                sommaMargini += marginePiatto;
+                let margine = ((prezzo - costo) / prezzo) * 100;
+                sommaMargini += margine;
                 piattiValidi++;
             }
         });
     }
 
-    let margineMedio = piattiValidi > 0 ? (sommaMargini / piattiValidi) : 0;
-    let riempimentoBarra = (margineMedio / targetOttimale) * 100;
-    if (riempimentoBarra > 100) riempimentoBarra = 100;
-    if (riempimentoBarra < 0) riempimentoBarra = 0;
+    let margineMedio = piattiValidi > 0 ? sommaMargini / piattiValidi : 0;
+    let riempimentoBarra = Math.min(Math.max(margineMedio, 0), 100);
 
-    if (document.getElementById("percentuale-guadagno-reale")) {
-        document.getElementById("percentuale-guadagno-reale").innerText = margineMedio.toFixed(0) + "%";
+    // Aggiornamento elementi DOM dell'interfaccia
+    let realeElem = document.getElementById("percentuale-guadagno-reale");
+    if (realeElem) {
+        realeElem.innerText = margineMedio.toFixed(1) + "%";
     }
-    if (document.getElementById("percentuale-target")) {
-        document.getElementById("percentuale-target").innerText = riempimentoBarra.toFixed(0) + "% del Target";
+
+    let targetElem = document.getElementById("percentuale-target");
+    if (targetElem) {
+        targetElem.innerText = riempimentoBarra.toFixed(1) + "% del Target";
     }
-    if (document.getElementById("barra-progresso")) {
-        document.getElementById("barra-progresso").style.width = riempimentoBarra + "%";
+
+    let barraElem = document.getElementById("barra-progresso");
+    if (barraElem) {
+        barraElem.style.width = riempimentoBarra + "%";
     }
 
     let messaggioElem = document.getElementById("messaggio-incitamento");
-    let barraElem = document.getElementById("barra-progresso");
-    
     if (messaggioElem && barraElem) {
         if (margineMedio >= targetOttimale) {
             messaggioElem.innerHTML = "🎉 Margini eccellenti! Il menu è super ottimizzato.";
             messaggioElem.style.color = "#10b981";
-            barraElem.style.background = "#10b981"; 
+            barraElem.style.background = "#10b981";
         } else if (margineMedio >= 50) {
             messaggioElem.innerText = "⚠️ Margine accettabile, ma puoi fare di meglio.";
-            messaggioElem.style.color = "#f59e0b"; 
-            barraElem.style.background = "linear-gradient(90deg, #f59e0b, #10b981)";
+            messaggioElem.style.color = "#f97316";
+            barraElem.style.background = "#f97316";
         } else {
-            messaggioElem.innerText = "🚨 Pericolo: I costi sono troppo alti!";
-            messaggioElem.style.color = "#ef4444"; 
+            messaggioElem.innerText = "🚨 Attenzione: Margine troppo basso. Controlla i costi!";
+            messaggioElem.style.color = "#ef4444";
             barraElem.style.background = "#ef4444";
         }
     }
