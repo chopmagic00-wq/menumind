@@ -854,8 +854,38 @@ function aggiornaWidgetGuadagno() {
         }
     }
 }
+// 1. VARIABILI GLOBALI (Sempre in cima!)
+let utenteCorrente = null;
+const _supabase = /* metti qui la tua inizializzazione */;
 
+// 2. FUNZIONI DI SUPPORTO (Definite prima di essere usate)
+async function controllaSessione() {
+    try {
+        const { data: { session } } = await _supabase.auth.getSession();
+        if (session) {
+            utenteCorrente = session.user;
+            console.log("Sessione recuperata per:", utenteCorrente.email);
+            
+            document.getElementById("auth-screen").style.display = "none";
+            document.getElementById("dashboard-screen").style.display = "block";
+            
+            if (typeof caricaPiattiDalDatabase === 'function') {
+                caricaPiattiDalDatabase();
+            }
+        }
+    } catch (err) {
+        console.error("Errore durante il recupero sessione:", err);
+    }
+}
+
+// 3. FUNZIONI LOGICHE (Come aggiungiRiga)
 async function aggiungiRiga() {
+    // Ora utenteCorrente esiste perché è stata definita sopra
+    if (!utenteCorrente) {
+        alert("Errore: devi essere loggato per aggiungere piatti.");
+        return;
+    }
+
     if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
         piatti = [];
         let onboardingBanner = document.getElementById("welcome-onboarding");
@@ -863,12 +893,21 @@ async function aggiungiRiga() {
     }
 
     let { data, error } = await _supabase.from('piatti').insert([{
-        user_id: utenteCorrente.id, nome: "Nuovo Piatto", vendita: 10.00, costo_ieri: 0, costo_oggi: 0, ricetta: "[]"
+        user_id: utenteCorrente.id, 
+        nome: "Nuovo Piatto", 
+        vendita: 10.00, 
+        costo_ieri: 0, 
+        costo_oggi: 0, 
+        ricetta: "[]"
     }]).select();
+    
     if (error) return alert(error.message);
     piatti.push(data[0]);
     renderTabella();
 }
+
+// 4. ESECUZIONE (Lanciato una sola volta all'avvio)
+controllaSessione();
 
 async function aggiornaDato(id, campo, valore) {
     let piatto = piatti.find(p => p.id == id);
