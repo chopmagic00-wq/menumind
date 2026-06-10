@@ -759,15 +759,13 @@ function renderTabella() {
             </td>
         `;
         
-        // CORRETTO: l'inserimento della riga avviene DENTRO il ciclo piatti.forEach
         tbody.appendChild(tr);
     }); 
 
-    // CORRETTO: l'aggiornamento globale avviene FUORI dal ciclo, quando la tabella è completata
     aggiornaWidgetGuadagno();
 }
 
-// Gestione corretta delle finestre Modali Ricetta
+// Gestione finestre Modali Ricetta
 let piattoInModificaRicetta = null; 
 
 function apriModalRicetta(idPiatto) {
@@ -781,7 +779,6 @@ function apriModalRicetta(idPiatto) {
         titoloElem.innerText = `Ingredienti e Grammature: ${piatto.nome || 'Nuovo Piatto'}`;
     }
 
-    // Carica gli ingredienti temporanei per la tabella della ricetta
     try {
         ingredientiTemporanei = piatto && piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
     } catch(e) {
@@ -794,7 +791,8 @@ function apriModalRicetta(idPiatto) {
     } else {
         console.error("Errore: Non trovo l'ID ricetta-modal");
     }
-    renderTabellaIngredienti();
+    
+    renderTabellaIngredienti(); 
 }
 
 function chiudiModalRicetta() {
@@ -825,7 +823,6 @@ function aggiornaWidgetGuadagno() {
     let margineMedio = piattiValidi > 0 ? sommaMargini / piattiValidi : 0;
     let riempimentoBarra = Math.min(Math.max(margineMedio, 0), 100);
 
-    // Aggiornamento elementi DOM dell'interfaccia
     let realeElem = document.getElementById("percentuale-guadagno-reale");
     if (realeElem) {
         realeElem.innerText = margineMedio.toFixed(1) + "%";
@@ -859,241 +856,210 @@ function aggiornaWidgetGuadagno() {
     }
 }
 
-        async function aggiungiRiga() {
-            if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
-                piatti = [];
-                document.getElementById("welcome-onboarding").style.display = "none";
-            }
+async function aggiungiRiga() {
+    if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
+        piatti = [];
+        let onboardingBanner = document.getElementById("welcome-onboarding");
+        if (onboardingBanner) onboardingBanner.style.display = "none";
+    }
 
-            let { data, error } = await _supabase.from('piatti').insert([{
-                user_id: utenteCorrente.id, nome: "Nuovo Piatto", vendita: 10.00, costo_ieri: 0, costo_oggi: 0, ricetta: "[]"
-            }]).select();
-            if (error) return alert(error.message);
-            piatti.push(data[0]);
-            renderTabella();
-        }
+    let { data, error } = await _supabase.from('piatti').insert([{
+        user_id: utenteCorrente.id, nome: "Nuovo Piatto", vendita: 10.00, costo_ieri: 0, costo_oggi: 0, ricetta: "[]"
+    }]).select();
+    if (error) return alert(error.message);
+    piatti.push(data[0]);
+    renderTabella();
+}
 
-        async function aggiornaDato(id, campo, valore) {
-    // Usiamo == invece di === per evitare bug se uno è numero e l'altro è stringa
+async function aggiornaDato(id, campo, valore) {
     let piatto = piatti.find(p => p.id == id);
     if (piatto) {
         let valoreFormattato = campo !== 'nome' ? (parseFloat(valore) || 0) : valore;
         piatto[campo] = valoreFormattato;
         
-        // Aggiorna su Supabase
         const { error } = await _supabase.from('piatti').update({ [campo]: valoreFormattato }).eq('id', id);
-        
         if (error) {
             console.error("Errore durante l'aggiornamento su Supabase:", error);
         }
-        
         renderTabella();
     } else {
-        console.warn(`Impossibile trovare il piatto con ID: ${id} per aggiornare il campo ${campo}`);
+        console.warn(`Impossibile trovare il piatto con ID: ${id}`);
     }
 }
 
 async function eliminaRiga(id) {
     if (!confirm("Sei sicuro di voler eliminare questo piatto?")) return;
 
-    // Elimina da Supabase
     const { error } = await _supabase.from('piatti').delete().eq('id', id);
-    
     if (error) {
         console.error("Errore durante l'eliminazione su Supabase:", error);
         alert("Impossibile eliminare il piatto dal database.");
         return;
     }
 
-    // Filtra l'array locale usando ==
     piatti = piatti.filter(p => p.id != id);
     
-    if (piatti.length === 0) {
+    if (piatti.length === 0 && typeof caricaPiattiDalDatabase === "function") {
         caricaPiattiDalDatabase();
-    } else
-
-
-        function apriModalRicetta(idPiatto) {
-    piattoInModificaRicetta = idPiatto;
-    
-    if (typeof piatti === 'undefined' || !piatti) return;
-    let piatto = piatti.find(p => String(p.id) === String(idPiatto));
-    
-    let titoloElem = document.getElementById("modal-titolo-piatto");
-    if (titoloElem && piatto) {
-        titoloElem.innerText = `Ingredienti e Grammature: ${piatto.nome || 'Nuovo Piatto'}`;
-    }
-
-    // Carica gli ingredienti temporanei per la tabella della ricetta
-    try {
-        ingredientiTemporanei = piatto && piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
-    } catch(e) {
-        ingredientiTemporanei = [];
-    }
-
-    let modal = document.getElementById("ricetta-modal");
-    if (modal) {
-        modal.style.display = "flex"; 
     } else {
-        console.error("Errore: Non trovo l'ID ricetta-modal");
+        renderTabella();
     }
-    
-    // CORRETTO: Adesso chiama la funzione con il nome esatto presente nel tuo file!
-    renderIngredienti(); 
 }
 
-        function chiudiModalRicetta() {
-            document.getElementById("ricetta-modal").style.display = "none";
-        }
+function renderTabellaIngredienti() {
+    let tbody = document.getElementById("ricetta-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    if (ingredientiTemporanei.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito.</td></tr>`;
+        return;
+    }
+    ingredientiTemporanei.forEach((ingr, index) => {
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><input type="text" value="${ingr.nome || ''}" onchange="aggiornaIngredienteDato(${index}, 'nome', this.value)"></td>
+            <td><input type="number" value="${ingr.grammi || 0}" onchange="aggiornaIngredienteDato(${index}, 'grammi', this.value)"></td>
+            <td><input type="number" step="0.001" value="${ingr.costo_grammo || 0}" onchange="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)"></td>
+            <td><button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button></td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
 
-        function renderTabellaIngredienti() {
-            let tbody = document.getElementById("ricetta-body");
-            tbody.innerHTML = "";
-            if (ingredientiTemporanei.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito.</td></tr>`;
-                return;
-            }
-            ingredientiTemporanei.forEach((ingr, index) => {
-                let tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td><input type="text" value="${ingr.nome || ''}" onchange="aggiornaIngredienteDato(${index}, 'nome', this.value)"></td>
-                    <td><input type="number" value="${ingr.grammi || 0}" onchange="aggiornaIngredienteDato(${index}, 'grammi', this.value)"></td>
-                    <td><input type="number" step="0.001" value="${ingr.costo_grammo || 0}" onchange="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)"></td>
-                    <td><button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
+function aggiungiIngredienteRiga() {
+    if (typeof ingredientiTemporanei === 'undefined') ingredientiTemporanei = [];
+    ingredientiTemporanei.push({ nome: "Nuovo ingrediente", grammi: 100, costo_grammo: 0.01 });
+    renderTabellaIngredienti();
+}
 
-        function aggiungiIngredienteRiga() {
-            ingredientiTemporanei.push({ nome: "Nuovo ingrediente", grammi: 100, costo_grammo: 0.01 });
-            renderTabellaIngredienti();
-        }
+function aggiornaIngredienteDato(index, campo, valore) {
+    if(ingredientiTemporanei[index]) {
+        ingredientiTemporanei[index][campo] = campo === 'nome' ? valore : parseFloat(valore) || 0;
+    }
+}
 
-        function aggiornaIngredienteDato(index, campo, valore) {
-            if(ingredientiTemporanei[index]) {
-                ingredientiTemporanei[index][campo] = campo === 'nome' ? valore : parseFloat(valore) || 0;
-            }
-        }
+function eliminaIngredienteRiga(index) {
+    ingredientiTemporanei.splice(index, 1);
+    renderTabellaIngredienti();
+}
 
-        function eliminaIngredienteRiga(index) {
-            ingredientiTemporanei.splice(index, 1);
-            renderTabellaIngredienti();
-        }
+async function salvaRicettaNelDatabase() {
+    let costoTotaleRicetta = 0;
+    ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
+    costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
 
-        async function salvaRicettaNelDatabase() {
-            let costoTotaleRicetta = 0;
-            ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
-            costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
+    let piatto = piatti.find(p => String(p.id) === String(piattoInModificaRicetta));
+    if (piatto) {
+        piatto.ricetta = JSON.stringify(ingredientiTemporanei);
+        piatto.costo_ieri = piatto.costo_oggi;
+        piatto.costo_oggi = costoTotaleRicetta;
 
-            let piatto = piatti.find(p => p.id === piattoInModificaId);
-            if (piatto) {
-                piatto.ricetta = JSON.stringify(ingredientiTemporanei);
-                piatto.costo_ieri = piatto.costo_oggi;
-                piatto.costo_oggi = costoTotaleRicetta;
+        await _supabase.from('piatti').update({ 
+            ricetta: piatto.ricetta, costo_ieri: piatto.costo_ieri, costo_oggi: piatto.costo_oggi
+        }).eq('id', piattoInModificaRicetta);
 
-                await _supabase.from('piatti').update({ 
-                    ricetta: piatto.ricetta, costo_ieri: piatto.costo_ieri, costo_oggi: piatto.costo_oggi
-                }).eq('id', piattoInModificaId);
+        alert("Ricetta salvata e ricalcolata!");
+        chiudiModalRicetta();
+        renderTabella();
+    }
+}
 
-                alert("Ricetta salvata e ricalcolata!");
-                chiudiModalRicetta();
-                renderTabella();
-            }
-        }
+function convertiInBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+}
 
-        function convertiInBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
-        }
+async function elaboraFatturaConIA(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-        async function elaboraFatturaConIA(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+    let contenitoreIA = document.getElementById("risposta-ai");
+    if (contenitoreIA) {
+        contenitoreIA.style.display = "block";
+        contenitoreIA.innerHTML = "🤖 L'IA sta analizzando la fattura e aggiornando il ricettario...";
+    }
 
-            let contenitoreIA = document.getElementById("risposta-ai");
-            contenitoreIA.style.display = "block";
-            contenitoreIA.innerHTML = "🤖 L'IA sta analizzando la fattura e aggiornando il ricettario...";
+    try {
+        const fileBase64 = await convertiInBase64(file);
+        const listaNomiMenu = piatti.filter(p => !String(p.id).startsWith("demo-")).map(p => p.nome);
+        const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
 
-            try {
-                const fileBase64 = await convertiInBase64(file);
-                const listaNomiMenu = piatti.filter(p => !String(p.id).startsWith("demo-")).map(p => p.nome);
-                const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
+        const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
+            method: "POST", 
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                modalita: "fattura", fileData: fileBase64, fileType: file.type, listaPiattiMenu: listaNomiMenu, lingua: linguaSelezionata
+            })
+        });
 
-                const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
-                    method: "POST", 
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        modalita: "fattura", fileData: fileBase64, fileType: file.type, listaPiattiMenu: listaNomiMenu, lingua: linguaSelezionata
-                    })
-                });
+        const risultato = await response.json();
+        if (!risultato.successo) throw new Error(risultato.error);
 
-                const risultato = await response.json();
-                if (!risultato.successo) throw new Error(risultato.error);
+        const datiGemini = risultato.dati;
+        let logFattura = "<strong>Fattura elaborata con successo! Dettagli:</strong><br>";
 
-                const datiGemini = risultato.dati;
-                let logFattura = "<strong>Fattura elaborata con successo! Dettagli:</strong><br>";
+        if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
+            for (let ingr of datiGemini.ingredienti_estratti) {
+                const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
+                logFattura += `• <strong>${ingr.nome}</strong> → Associato a: <em>${nomePiattoAssociato}</em> al costo di ${ingr.prezzo_unitario}€<br>`;
 
-                if (datiGemini.ingredienti_estratti && datiGemini.ingredienti_estratti.length > 0) {
-                    for (let ingr of datiGemini.ingredienti_estratti) {
-                        const nomePiattoAssociato = ingr.piatto_associato || "Nessun piatto associato";
-                        logFattura += `• <strong>${ingr.nome}</strong> → Associato a: <em>${nomePiattoAssociato}</em> al costo di ${ingr.prezzo_unitario}€<br>`;
-
-                        let piattoTrovato = null;
-                        if (ingr.piatto_associato) {
-                            piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
-                        }
-                        
-                        if (piattoTrovato && !String(piattoTrovato.id).startsWith("demo-")) {
-                            let ingredientiPiatto = [];
-                            try {
-                                ingredientiPiatto = piattoTrovato.ricetta ? JSON.parse(piattoTrovato.ricetta) : [];
-                            } catch(e) { ingredientiPiatto = []; }
-
-                            let costoAlGrammoReale = parseFloat((ingr.prezzo_unitario / 1000).toFixed(5));
-                            let nomeFatturaPulito = ingr.nome.toLowerCase().trim();
-                            
-                            let ingrEsistente = ingredientiPiatto.find(i => {
-                                let nomeRicettarioPulito = i.nome.toLowerCase().trim();
-                                return nomeFatturaPulito.includes(nomeRicettarioPulito) || nomeRicettarioPulito.includes(nomeFatturaPulito);
-                            });
-
-                            if (ingrEsistente) {
-                                ingrEsistente.costo_grammo = costoAlGrammoReale;
-                            }
-
-                            let nuovoCostoTotale = 0;
-                            ingredientiPiatto.forEach(i => nuovoCostoTotale += (i.grammi * i.costo_grammo));
-                            nuovoCostoTotale = parseFloat(nuovoCostoTotale.toFixed(2));
-
-                            piattoTrovato.ricetta = JSON.stringify(ingredientiPiatto);
-                            piattoTrovato.costo_ieri = piattoTrovato.costo_oggi;
-                            piattoTrovato.costo_oggi = nuovoCostoTotale;
-
-                            await _supabase.from('piatti').update({
-                                ricetta: piattoTrovato.ricetta, costo_ieri: piattoTrovato.costo_ieri, costo_oggi: piattoTrovato.costo_oggi
-                            }).eq('id', piattoTrovato.id);
-                        }
-                    }
+                let piattoTrovato = null;
+                if (ingr.piatto_associato) {
+                    piattoTrovato = piatti.find(p => p.nome && p.nome.toLowerCase().trim() === ingr.piatto_associato.toLowerCase().trim());
                 }
-                contenitoreIA.innerHTML = logFattura;
-                caricaPiattiDalDatabase();
-            } catch (err) {
-                contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore: ${err.message}</span>`;
+                
+                if (piattoTrovato && !String(piattoTrovato.id).startsWith("demo-")) {
+                    let ingredientiPiatto = [];
+                    try {
+                        ingredientiPiatto = piattoTrovato.ricetta ? JSON.parse(piattoTrovato.ricetta) : [];
+                    } catch(e) { ingredientiPiatto = []; }
+
+                    let costoAlGrammoReale = parseFloat((ingr.prezzo_unitario / 1000).toFixed(5));
+                    let nomeFatturaPulito = ingr.nome.toLowerCase().trim();
+                    
+                    let ingrEsistente = ingredientiPiatto.find(i => {
+                        let nomeRicettarioPulito = i.nome.toLowerCase().trim();
+                        return nomeFatturaPulito.includes(nomeRicettarioPulito) || nomeRicettarioPulito.includes(nomeFatturaPulito);
+                    });
+
+                    if (ingrEsistente) {
+                        ingrEsistente.costo_grammo = costoAlGrammoReale;
+                    }
+
+                    let nuovoCostoTotale = 0;
+                    ingredientiPiatto.forEach(i => nuovoCostoTotale += (i.grammi * i.costo_grammo));
+                    nuovoCostoTotale = parseFloat(nuovoCostoTotale.toFixed(2));
+
+                    piattoTrovato.ricetta = JSON.stringify(ingredientiPiatto);
+                    piattoTrovato.costo_ieri = piattoTrovato.costo_oggi;
+                    piattoTrovato.costo_oggi = nuovoCostoTotale;
+
+                    await _supabase.from('piatti').update({
+                        ricetta: piattoTrovato.ricetta, costo_ieri: piattoTrovato.costo_ieri, costo_oggi: piattoTrovato.costo_oggi
+                    }).eq('id', piattoTrovato.id);
+                }
             }
         }
+        if (contenitoreIA) contenitoreIA.innerHTML = logFattura;
+        if (typeof caricaPiattiDalDatabase === "function") caricaPiattiDalDatabase();
+    } catch (err) {
+        if (contenitoreIA) contenitoreIA.innerHTML = `<span style="color:red;">❌ Errore: ${err.message}</span>`;
+    }
+}
 
-        function toggleChat() {
-            let chatBox = document.getElementById("chat-box");
-            chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
-        }
+function toggleChat() {
+    let chatBox = document.getElementById("chat-box");
+    if (chatBox) chatBox.style.display = chatBox.style.display === "none" ? "flex" : "none";
+}
 
-       async function inviaMessaggioChat() {
+async function inviaMessaggioChat() {
     let inputElem = document.getElementById("chat-input");
+    if (!inputElem) return;
     let messaggioTesto = inputElem.value.trim();
     if (!messaggioTesto) return;
 
@@ -1104,8 +1070,6 @@ async function eliminaRiga(id) {
 
     try {
         const linguaSelezionata = document.getElementById("auth-lingua").value || "Italiano";
-        
-        // Protezione: se l'array piatti non esiste o è vuoto, mandiamo un array vuoto sicuro
         const contestoPiatti = (typeof piatti !== 'undefined' && piatti) ? piatti.map(p => ({
             nome: p.nome || "Senza nome",
             vendita: parseFloat(p.vendita) || 0,
@@ -1113,29 +1077,21 @@ async function eliminaRiga(id) {
             costo_oggi: parseFloat(p.costo_oggi) || 0
         })) : [];
 
-        // Costruiamo il payload esattamente come richiesto dalla logica della Edge Function
-        // Costruiamo il payload con tutte le varianti possibili per il campo del testo
-const payload = {
-    modalita: "chat",
-    
-    // Mandiamo il testo in tutte le salse così la Edge Function lo trova di sicuro:
-    messaggio: messaggioTesto, // Italiano
-    message: messaggioTesto,   // Inglese
-    prompt: messaggioTesto,    // Standard IA
-    testo: messaggioTesto,     // Alternativa italiana
-    
-    contesto: contestoPiatti, 
-    lingua: linguaSelezionata
-};
+        const payload = {
+            modalita: "chat",
+            messaggio: messaggioTesto,
+            message: messaggioTesto,
+            prompt: messaggioTesto,
+            testo: messaggioTesto,
+            contesto: contestoPiatti, 
+            lingua: linguaSelezionata
+        };
 
-        // CONTROLLO DI SICUREZZA: Ispeziona cosa stai mandando
         console.log("Payload inviato alla Edge Function:", payload);
 
         const response = await fetch("https://jgpokqpgsrlmvspkxach.supabase.co/functions/v1/elabora-fattura", {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
 
@@ -1144,10 +1100,9 @@ const payload = {
             throw new Error(`Server Error ${response.status}: ${erroreTesto}`);
         }
 
-   const rispostaJson = await response.json();
-        if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
-            document.getElementById(loadingId).remove();
-        }
+        const rispostaJson = await response.json();
+        let loadingElem = document.getElementById(loadingId);
+        if (loadingId && loadingElem) loadingElem.remove();
 
         console.log("Oggetto ricevuto da Supabase:", rispostaJson);
 
@@ -1165,20 +1120,20 @@ const payload = {
         if (testoRisposta) {
             stampaMessaggioInChat(testoRisposta, "bot");
         } else {
-            stampaMessaggioInChat(`🤖 Ricevuto JSON ma senza testo leggibile. Struttura: ${JSON.stringify(rispostaJson)}`, "bot");
+            stampaMessaggioInChat(`🤖 Ricevuto JSON ma senza testo leggibile.`, "bot");
         }
 
     } catch (errore) {
         console.error("Errore dettagliato chat:", errore);
-        if (typeof loadingId !== 'undefined' && loadingId && document.getElementById(loadingId)) {
-            document.getElementById(loadingId).remove();
-        }
+        let loadingElem = document.getElementById(loadingId);
+        if (loadingId && loadingElem) loadingElem.remove();
         stampaMessaggioInChat(`❌ Errore: ${errore.message}`, "bot");
     }
-} // <-- Questa chiude inviaMessaggioChat
+}
 
 function stampaMessaggioInChat(testo, autore) {
     let boxMessaggi = document.getElementById("chat-messages");
+    if (!boxMessaggi) return;
     let divMsg = document.createElement("div");
     let uniqueId = "msg-" + Date.now() + Math.floor(Math.random() * 1000);
     
@@ -1190,46 +1145,26 @@ function stampaMessaggioInChat(testo, autore) {
     boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
     
     return uniqueId;
-} // <-- Questa chiude stampaMessaggioInChat
+}
 
-        function stampaMessaggioInChat(testo, autore) {
-            let boxMessaggi = document.getElementById("chat-messages");
-            let divMsg = document.createElement("div");
-            let uniqueId = "msg-" + Date.now() + Math.floor(Math.random() * 1000);
-            
-            divMsg.id = uniqueId;
-            divMsg.className = `message ${autore}`;
-            divMsg.innerText = testo;
-            
-            boxMessaggi.appendChild(divMsg);
-            boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
-            
-            return uniqueId;
-        }
-    // Forza la gestione dell'accesso correggendo gli ID anche se scritti male nell'HTML
 async function gestisciAuth(e) {
     if (e) e.preventDefault();
-    
     console.log("Tentativo di accesso avviato...");
     
-    // Mostriamo direttamente la dashboard principale per farti entrare nel software
     let authScreen = document.getElementById("auth-screen") || document.querySelector("[id*='auth-screen']");
     let mainApp = document.getElementById("main-app");
     
     if (authScreen) authScreen.style.display = "none";
     if (mainApp) mainApp.style.display = "block";
     
-    // Inizializza i dati del ristorante e del menu
     if (typeof caricaPiattiDalDatabase === "function") {
         caricaPiattiDalDatabase();
     } else if (typeof renderTabella === "function") {
         renderTabella();
     }
-    
     console.log("Accesso eseguito con successo!");
 }
 
-// Funzione di supporto per scambiare Login e Registrazione in sicurezza
 function cambiaModalita(modalita) {
     let titolo = document.getElementById("auth-title") || document.querySelector("[id*='auth-title']");
     let btnSubmit = document.querySelector("#auth-form button[type='submit']") || document.querySelector("form button[type='submit']");
@@ -1247,6 +1182,6 @@ function cambiaModalita(modalita) {
         if (toggleText) toggleText.innerHTML = 'Non hai un account? <a href="#" onclick="cambiaModalita(\'registrazione\')">Registrati</a>';
     }
 }
-    </script>
+</script>
 </body>
 </html>
