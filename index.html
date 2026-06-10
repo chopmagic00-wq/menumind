@@ -5,6 +5,12 @@
     <title>MenuMind AI - Smart Excel SaaS</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    let utenteCorrente = null;
+    let piatti = [];
+    let ingredientiTemporanei = [];
+    let piattoInModificaRicetta = null;
+    let isRegistrazione = false;
+    let isAppInPausa = false;
 
     <style>
     body {
@@ -583,7 +589,7 @@
 
             utenteCorrente = riscontro.data.user;
             document.getElementById("auth-screen").style.display = "none";
-            document.getElementById("dashboard-screen").style.display = "block";
+            document.getElementById("main-app")
             document.getElementById("chat-toggle").style.display = "flex"; 
             document.getElementById("user-display").innerText = "👤 Ristorante: " + utenteCorrente.email;
             
@@ -855,19 +861,24 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 2. FUNZIONE DI RECUPERO SESSIONE (Lanciata all'avvio)
 async function controllaSessione() {
-    try {
-        const { data: { session } } = await _supabase.auth.getSession();
-        if (session) {
-            console.log("Sessione attiva per:", session.user.email);
-            document.getElementById("auth-screen").style.display = "none";
-            document.getElementById("dashboard-screen").style.display = "block";
-            if (typeof caricaPiattiDalDatabase === 'function') caricaPiattiDalDatabase();
-        }
-    } catch (err) {
-        console.error("Errore sessione:", err);
-    }
-}
+    const {
+        data: { session }
+    } = await _supabase.auth.getSession();
 
+    if (!session) return;
+
+    utenteCorrente = session.user;
+
+    document.getElementById("auth-screen").style.display = "none";
+    document.getElementById("main-app").style.display = "block";
+    document.getElementById("chat-toggle").style.display = "flex";
+
+    document.getElementById("user-display").innerText =
+        "👤 Ristorante: " + utenteCorrente.email;
+
+    aggiornaStatoAbbonamentoInterfaccia();
+    caricaPiattiDalDatabase();
+}
 // 3. FUNZIONE AGGIUNGI RIGA (Aggiornata per usare l'utente al volo)
 async function aggiungiRiga() {
     // Aggiungiamo un log per vedere cosa risponde Supabase
@@ -905,27 +916,6 @@ async function aggiungiRiga() {
     } else {
         renderTabella();
     }
-
-function renderTabellaIngredienti() {
-    let tbody = document.getElementById("ricetta-body");
-    if (!tbody) return;
-    tbody.innerHTML = "";
-    
-    if (ingredientiTemporanei.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito.</td></tr>`;
-        return;
-    }
-    ingredientiTemporanei.forEach((ingr, index) => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td><input type="text" value="${ingr.nome || ''}" onchange="aggiornaIngredienteDato(${index}, 'nome', this.value)"></td>
-            <td><input type="number" value="${ingr.grammi || 0}" onchange="aggiornaIngredienteDato(${index}, 'grammi', this.value)"></td>
-            <td><input type="number" step="0.001" value="${ingr.costo_grammo || 0}" onchange="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)"></td>
-            <td><button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button></td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
 
 function renderTabellaIngredienti() {
     let tbody = document.getElementById("ricetta-body");
@@ -1177,24 +1167,6 @@ function stampaMessaggioInChat(testo, autore) {
     boxMessaggi.scrollTop = boxMessaggi.scrollHeight;
     
     return uniqueId;
-}
-
-async function gestisciAuth(e) {
-    if (e) e.preventDefault();
-    console.log("Tentativo di accesso avviato...");
-    
-   let authScreen = document.getElementById("auth-screen") || document.querySelector("[id*='auth-screen']");
-    let mainApp = document.getElementById("main-app");
-        
-    if (authScreen) authScreen.style.display = "none";
-    if (mainApp) mainApp.style.display = "block";
-    
-    if (typeof caricaPiattiDalDatabase === "function") {
-        caricaPiattiDalDatabase();
-    } else if (typeof renderTabella === "function") {
-        renderTabella();
-    }
-    console.log("Accesso eseguito con successo!");
 }
 
 function cambiaModalita(modalita) {
