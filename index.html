@@ -760,14 +760,12 @@ function renderTabella() {
     aggiornaWidgetGuadagno();
     // ... fine della funzione renderTabella che abbiamo sistemato prima
         tbody.appendChild(tr);
-    };
+    }; // <-- Chiude correttamente il piatti.forEach
 
-    aggiornaWidgetGuadagno();
-        // <-- Questa è la fine di renderTabella
+    aggiornaWidgetGuadagno(); // <-- Aggiorna la barra in alto // <-- Chiude DEFINITIVAMENTE la funzione renderTabella()
 
-// 🆕 INCOLLALO ESATTAMENTE QUI, SUBITO SOTTO!
-
-let piattoInModificaRicetta = null; 
+// Da qui in poi il codice continua regolarmente...
+let piattoInModificaRicetta = null;
 
 function apriModalRicetta(idPiatto) {
     piattoInModificaRicetta = idPiatto;
