@@ -704,23 +704,29 @@ function renderTabella() {
         let isDemoId = String(piatto.id).startsWith("demo-");
         let tr = document.createElement("tr");
 
-        // 1. Calcolo percentuale Food Cost
         let prezzoVendita = parseFloat(piatto.vendita) || 0;
         let costoAttuale = parseFloat(piatto.costo_oggi) || 0;
-        let foodCostPercentuale = 0;
+        
+        // 1. CALCOLO DEL MARGINE DI GUADAGNO REALE (Invece del Food Cost)
+        let marginePercentuale = 0;
         if (prezzoVendita > 0) {
-            foodCostPercentuale = parseFloat(((costoAttuale / prezzoVendita) * 100).toFixed(1));
+            marginePercentuale = parseFloat((((prezzoVendita - costoAttuale) / prezzoVendita) * 100).toFixed(1));
         }
 
-        // 2. Alert visivo del Margine
+        // 2. Alert visivo basato sul MARGINE (Ottimo se sopra il 65%)
         let indicatoreMargine = "✅ OK";
         let stileBadge = "background-color: #dcfce7; color: #15803d; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em;";
         
-        if (foodCostPercentuale > 35) {
-            indicatoreMargine = `⚠️ Food Cost Alto (${foodCostPercentuale}%)`;
-            stileBadge = "background-color: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;";
-        } else if (foodCostPercentuale > 0) {
-            indicatoreMargine = `✅ Ottimo (${foodCostPercentuale}%)`;
+        if (prezzoVendita > 0) {
+            if (marginePercentuale < 65) { // Se guadagni meno del 65%, il Food Cost è troppo alto (>35%)
+                indicatoreMargine = `⚠️ Margine Basso (${marginePercentuale}%)`;
+                stileBadge = "background-color: #fee2e2; color: #b91c1c; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;";
+            } else {
+                indicatoreMargine = `✅ Margine Ottimo (${marginePercentuale}%)`;
+            }
+        } else {
+            indicatoreMargine = "N/D";
+            stileBadge = "background-color: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 4px; font-size: 0.9em;";
         }
 
         // 3. Icona del Trend rispetto a ieri
@@ -731,7 +737,7 @@ function renderTabella() {
             trendIcona = "🔻";
         }
 
-        // COSTRUZIONE SICURA DELL'HTML
+        // COSTRUZIONE DELL'HTML DELLA TABELLA
         tr.innerHTML = `
             <td>
                 <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="margin-right: 8px; cursor: pointer;">📖</button>
@@ -757,11 +763,9 @@ function renderTabella() {
         tbody.appendChild(tr);
     });
 
-    // CHIAMATA AUTOMATICA: Aggiorna i grafici e i contatori ogni volta che la tabella cambia!
-    aggiornaWidgetRisparmio();
+    // Se hai anche le funzioni dei widget sotto, ricordati di chiamarle qui fuori dal ciclo:
+    if (typeof aggiornaWidgetRisparmio === 'function') aggiornaWidgetRisparmio();
 }
-
-// SECONDA FUNZIONE: COMPLETAMENTE STACCATA E AUTONOMA
 function aggiornaWidgetGuadagno() {
     const targetOttimale = 70; // 70%
     let sommaMargini = 0;
