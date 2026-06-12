@@ -824,20 +824,6 @@ function aggiornaWidgetGuadagno() {
         }
     }
 }
-    // Cambiamo messaggio in base al progresso
-    let messaggioElem = document.getElementById("messaggio-incitamento");
-    if (messaggioElem) {
-        if (percentuale >= 100) {
-            messaggioElem.innerHTML = "🎉 Obiettivo Mensile Raggiunto! Sei un grande Chef d'Azienda!";
-            messaggioElem.style.color = "#10b981"; // Testo Verde Vittoria
-        } else if (percentuale > 50) {
-            messaggioElem.innerText = "🚀 Ottimo lavoro! Sei a più di metà strada.";
-            messaggioElem.style.color = "#3b82f6"; // Testo Blu
-        } else {
-            messaggioElem.innerText = "Carica la prossima fattura per scovare altri rincari!";
-            messaggioElem.style.color = "#64748b"; // Testo Grigio standard
-        }
-    }
         async function aggiungiRiga() {
             if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
                 piatti = [];
