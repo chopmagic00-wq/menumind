@@ -824,22 +824,6 @@ function aggiornaWidgetGuadagno() {
         }
     }
 }
-
-    // CORRETTO: Usiamo 'obiettivoMensile' invece di 'maxObiettivo' per evitare l'errore
-    let percentuale = (risparmioEffettivo / obiettivoMensile) * 100;
-    if (percentuale > 100) percentuale = 100; // Blocchiamo la barra al 100% massimo
-    
-    // Aggiorniamo i testi e la barra nell'HTML
-    if (document.getElementById("soldi-risparmiati")) {
-        document.getElementById("soldi-risparmiati").innerText = risparmioEffettivo.toFixed(2) + " €";
-    }
-    if (document.getElementById("percentuale-target")) {
-        document.getElementById("percentuale-target").innerText = percentuale.toFixed(0) + "%";
-    }
-    if (document.getElementById("barra-progresso")) {
-        document.getElementById("barra-progresso").style.width = percentuale + "%";
-    }
-
     // Cambiamo messaggio in base al progresso
     let messaggioElem = document.getElementById("messaggio-incitamento");
     if (messaggioElem) {
