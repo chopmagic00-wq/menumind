@@ -846,6 +846,42 @@ function aggiornaWidgetGuadagno() {
         console.warn(`Impossibile trovare il piatto con ID: ${id} per aggiornare il campo ${campo}`);
     }
 }
+        async function aggiungiRiga() {
+    // 1. Se ci sono ancora i piatti demo dell'onboarding, svuota l'array
+    if (typeof piatti !== 'undefined' && piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
+        piatti = [];
+        let onboardingElem = document.getElementById("welcome-onboarding");
+        if (onboardingElem) onboardingElem.style.display = "none";
+    }
+
+    // 2. Prepariamo l'oggetto del nuovo piatto con i campi corretti del database
+    const nuovoPiattoDatabase = {
+        nome: "Nuovo Piatto",
+        vendita: 0,
+        costo_ieri: 0,
+        costo_oggi: 0,
+        ricetta: JSON.stringify([]) // Inizializza con una ricetta vuota
+    };
+
+    // 3. Salviamo il piatto direttamente su Supabase per ottenere un ID reale
+    const { data, error } = await _supabase
+        .from('piatti')
+        .insert([nuovoPiattoDatabase])
+        .select();
+
+    if (error) {
+        console.error("❌ Errore durante l'aggiunta del piatto su Supabase:", error.message);
+        alert("Impossibile aggiungere il piatto sul database: " + error.message);
+    } else if (data && data.length > 0) {
+        // 4. Se Supabase risponde correttamente, aggiungiamo il piatto reale all'array locale
+        piatti.push(data[0]);
+        
+        console.log("✅ Nuovo piatto inserito con ID reale:", data[0].id);
+        
+        // 5. Rinfreschiamo la tabella visiva (il libro sarà subito pronto e cliccabile)
+        renderTabella();
+    }
+}
 
 async function eliminaRiga(id) {
     if (!confirm("Sei sicuro di voler eliminare questo piatto?")) return;
