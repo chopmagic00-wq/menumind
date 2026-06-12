@@ -900,59 +900,54 @@ function apriModalRicetta(idOriginale) {
     const idCercato = String(idOriginale).trim();
     console.log("📖 Tento di aprire la ricetta per il piatto con ID:", idCercato);
 
-    // 1. Controlliamo se l'array piatti esiste, altrimenti creiamo un piano di emergenza
     if (typeof piatti === 'undefined' || !piatti) {
         console.error("❌ L'array 'piatti' non è definito globalmente!");
-        alert("Errore di sistema: l'elenco dei piatti è sparito dalla memoria.");
         return;
     }
 
-    // 2. Cerchiamo il piatto convertendo tutto in stringa
     let piatto = piatti.find(p => String(p.id).trim() === idCercato);
 
-    // 3. SE NON LO TROVA: Tentiamo un recupero d'emergenza controllando i testi direttamente nella tabella HTML
     if (!piatto) {
-        console.warn("⚠️ Piatto non trovato nell'array. Tento il recupero d'emergenza dall'interfaccia...");
-        
-        // Cerchiamo se nel database locale c'è un elemento con ID simile (magari numerico vs stringa)
         piatto = piatti.find(p => parseInt(p.id) === parseInt(idCercato));
-        
-        // Se non lo trova ancora, creiamo un oggetto temporaneo al volo per non far crashare la modale
         if (!piatto) {
-            piatto = {
-                id: idCercato,
-                nome: "Piatto in caricamento...",
-                ricetta: JSON.stringify([])
-            };
+            piatto = { id: idCercato, nome: "Piatto in caricamento...", ricetta: JSON.stringify([]) };
         }
     }
 
-    console.log("✅ Piatto agganciato per la modale:", piatto.nome);
-
-    // 4. Apertura fisica della modale HTML
+    // 1. Cerchiamo la modale
     let modal = document.getElementById("modal-ricetta") || 
                 document.getElementById("ricetta-modal") || 
-                document.querySelector(".modal"); // Cerca una modale generica se gli ID falliscono
+                document.querySelector(".modal");
     
     if (modal) {
+        // 2. 🔥 STILE CSS FORZATO PER CENTRARLA PERFETTAMENTE A SCHERMO 🔥
         modal.style.display = "block";
-        modal.style.opacity = "1"; // Forza la visibilità se ci sono transizioni CSS
-        console.log("🔓 Modale visualizzata sullo schermo.");
+        modal.style.position = "fixed";    // La blocca sullo schermo anche se fai scroll
+        modal.style.top = "50%";           // La sposta a metà altezza
+        modal.style.left = "50%";          // La sposta a metà larghezza
+        modal.style.transform = "translate(-50%, -50%)"; // La centra millimetricamente rispetto a se stessa
+        modal.style.zIndex = "9999";       // La mette sopra la tabella e sopra i widget
+        modal.style.backgroundColor = "#ffffff"; // Sfondo bianco pulito
+        modal.style.boxShadow = "0px 10px 30px rgba(0,0,0,0.3)"; // Un'ombra elegante per staccarla dallo sfondo
+        modal.style.padding = "20px";      // Spazio interno per respirare
+        modal.style.borderRadius = "8px";  // Angoli arrotondati stile moderno
+        modal.style.maxHeight = "85vh";    // Evita che esca dallo schermo se ci sono troppi ingredienti
+        modal.style.overflowY = "auto";    // Se gli ingredienti sono troppi, crea una barra di scorrimento interna
+        
+        console.log("🔓 Modale posizionata e centrata con successo.");
     } else {
-        console.error("❌ Impossibile trovare la modale nell'HTML. Verifica l'ID nel tuo index.html");
-        alert("Interfaccia modale non trovata nel file HTML.");
+        console.error("❌ Impossibile trovare la modale nell'HTML.");
+        alert("Interfaccia modale non trovata.");
         return;
     }
 
-    // 5. Rendering degli ingredienti
+    // 3. Disegno degli ingredienti
     if (typeof renderTabellaIngredienti === "function") {
         try {
             renderTabellaIngredienti(piatto);
         } catch (err) {
             console.error("❌ Errore durante il disegno degli ingredienti:", err);
         }
-    } else {
-        console.warn("⚠️ Funzione renderTabellaIngredienti non trovata. La modale si aprirà vuota.");
     }
 }
 function chiudiModalRicetta() {
