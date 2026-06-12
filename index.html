@@ -1012,30 +1012,49 @@ function eliminaIngredienteRiga(index) {
 }
 
 async function salvaRicettaNelDatabase() {
-    console.log("Il tasto è stato premuto correttamente!"); // <-- Aggiungi questa riga
+    console.log("=== INIZIO SALVATAGGIO RICETTA ===");
+    console.log("Tasto premuto con successo!");
+    console.log("ID del piatto da modificare:", piattoInModificaId);
+    console.log("Ingredienti temporanei attuali:", ingredientiTemporanei);
+
     let costoTotaleRicetta = 0;
-    ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
-    let piatto = piatti.find(p => p.id === piattoInModificaId);
-    if (piatto) {
-        piatto.ricetta = JSON.stringify(ingredientiTemporanei);
-        piatto.costo_ieri = piatto.costo_oggi;
-        piatto.costo_oggi = costoTotaleRicetta;
+    ingredientiTemporanei.forEach(i => {
+        costoTotaleRicetta += (Number(i.grammi) * Number(i.costo_grammo));
+    });
+    costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
+    console.log("Costo totale calcolato:", costoTotaleRicetta);
 
-        // Gestione sicura del salvataggio con controllo errori
-        const { error } = await _supabase.from('piatti').update({ 
-            ricetta: piatto.ricetta, 
-            costo_ieri: piatto.costo_ieri, 
-            costo_oggi: piatto.costo_oggi
-        }).eq('id', piattoInModificaId);
+    // Usiamo il doppio uguale (==) o convertiamo in Number per evitare bug stringa/numero
+    let piatto = piatti.find(p => Number(p.id) === Number(piattoInModificaId));
+    console.log("Piatto trovato nel sistema:", piatto);
 
-        if (error) {
-            console.error("❌ Errore durante il salvataggio su Supabase:", error.message);
-            alert("Impossibile salvare la ricetta nel database: " + error.message);
-        } else {
-            alert("Ricetta salvata e ricalcolata con successo!");
-            chiudiModalRicetta();
-            renderTabella(); // Ricarica la tabella principale con i nuovi costi aggiornati
-        }
+    if (!piatto) {
+        console.warn("⚠️ ERRORE: Non è stato trovato alcun piatto con l'ID:", piattoInModificaId);
+        alert("Impossibile salvare: Piatto non trovato nell'elenco locale. Controlla la console.");
+        return; // Blocca l'esecuzione ed evita il crash
+    }
+
+    piatto.ricetta = JSON.stringify(ingredientiTemporanei);
+    piatto.costo_ieri = piatto.costo_oggi;
+    piatto.costo_oggi = costoTotaleRicetta;
+
+    console.log("Invio i dati aggiornati a Supabase...");
+
+    // Gestione sicura del salvataggio con controllo errori
+    const { error } = await _supabase.from('piatti').update({ 
+        ricetta: piatto.ricetta, 
+        costo_ieri: piatto.costo_ieri, 
+        costo_oggi: piatto.costo_oggi
+    }).eq('id', piattoInModificaId);
+
+    if (error) {
+        console.error("❌ Errore durante il salvataggio su Supabase:", error.message);
+        alert("Impossibile salvare la ricetta nel database: " + error.message);
+    } else {
+        console.log("✅ Salvataggio completato con successo su Supabase!");
+        alert("Ricetta salvata e ricalcolata con successo!");
+        chiudiModalRicetta();
+        renderTabella(); // Ricarica la tabella principale con i nuovi costi aggiornati
     }
 }
 
