@@ -1012,10 +1012,9 @@ function eliminaIngredienteRiga(index) {
 }
 
 async function salvaRicettaNelDatabase() {
+    console.log("Il tasto è stato premuto correttamente!"); // <-- Aggiungi questa riga
     let costoTotaleRicetta = 0;
     ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
-    costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
-
     let piatto = piatti.find(p => p.id === piattoInModificaId);
     if (piatto) {
         piatto.ricetta = JSON.stringify(ingredientiTemporanei);
