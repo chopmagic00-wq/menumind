@@ -898,30 +898,38 @@ async function eliminaRiga(id) {
 // ========================================================
 
 function apriModalRicetta(idOriginale) {
-    // 🔥 FORZIAMO L'ID A DIVENTARE UNA STRINGA (Risolve il problema dei piatti reali)
-    const id = String(idOriginale);
-    
-    console.log("📖 Tento di aprire la ricetta per il piatto con ID:", id);
+    console.log("📖 Tento di aprire la ricetta per il piatto con ID:", idOriginale);
 
-    // Cerca il piatto nell'array usando l'ID convertito in stringa
-    const piatto = piatti.find(p => String(p.id) === id);
+    // 1. Cerchiamo il piatto convertendo entrambi i valori in stringhe per non sbagliare mai
+    const piatto = piatti.find(p => String(p.id) === String(idOriginale));
 
     if (!piatto) {
-        console.error("❌ Piatto non trovato per l'ID:", id);
+        console.error("❌ Errore: Piatto non trovato nell'array 'piatti' per l'ID:", idOriginale);
+        console.log("Array piatti attuale:", piatti); // Ti mostra cosa c'è dentro l'array in quel momento
+        alert("Piatto non trovato nei dati locali.");
         return;
     }
 
-    // Mostra la modale (inserisci qui il tuo ID della modale, es. 'modal-ricetta')
-    let modal = document.getElementById("modal-ricetta"); 
+    console.log("✅ Piatto trovato con successo:", piatto.nome);
+
+    // 2. Apriamo la modale. Controlla se la tua modale si chiama "modal-ricetta" o "ricetta-modal"
+    let modal = document.getElementById("modal-ricetta") || document.getElementById("ricetta-modal"); 
+    
     if (modal) {
         modal.style.display = "block";
+        modal.classList.add("show"); // Se usi Bootstrap o classi CSS per le animazioni
+        console.log("🔓 Modale visibile impostata su display: block");
+    } else {
+        console.error("❌ Errore: Non ho trovato nessun elemento HTML con ID 'modal-ricetta' o 'ricetta-modal'!");
+        alert("Errore di configurazione dell'interfaccia (Modale non trovata).");
+        return;
     }
 
-    // Richiama la funzione che disegna la tabella degli ingredienti dentro la modale
+    // 3. Disegnamo gli ingredienti
     if (typeof renderTabellaIngredienti === "function") {
         renderTabellaIngredienti(piatto);
     } else {
-        console.warn("⚠️ Funzione renderTabellaIngredienti non trovata");
+        console.warn("⚠️ Funzione renderTabellaIngredienti non trovata nel codice.");
     }
 }
 
