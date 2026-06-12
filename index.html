@@ -910,77 +910,114 @@ async function eliminaRiga(id) {
     }
 }
 
-        function apriModalRicetta(id) {
-            piattoInModificaId = id;
-            let piatto = piatti.find(p => p.id === id);
-            if (!piatto) return;
-            document.getElementById("modal-titolo-piatto").innerText = `Ingredienti & Grammature: ${piatto.nome}`;
-            try {
-                ingredientiTemporanei = piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
-            } catch(e) { ingredientiTemporanei = []; }
-            renderTabellaIngredienti();
-            document.getElementById("ricetta-modal").style.display = "flex";
+        // ========================================================
+// INTERFACCIA E LOGICA DI GESTIONE MODALE RICETTE (LIBRO 📖)
+// ========================================================
+
+function apriModalRicetta(id) {
+    piattoInModificaId = id;
+    let piatto = piatti.find(p => p.id === id);
+    if (!piatto) return;
+    
+    document.getElementById("modal-titolo-piatto").innerText = `Ingredienti & Grammature: ${piatto.nome}`;
+    
+    try {
+        ingredientiTemporanei = piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
+    } catch(e) { 
+        ingredientiTemporanei = []; 
+    }
+    
+    renderTabellaIngredienti();
+    document.getElementById("ricetta-modal").style.display = "flex";
+}
+
+function chiudiModalRicetta() {
+    document.getElementById("ricetta-modal").style.display = "none";
+}
+
+function renderTabellaIngredienti() {
+    let tbody = document.getElementById("ricetta-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    
+    if (ingredientiTemporanei.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito.</td></tr>`;
+        return;
+    }
+    
+    ingredientiTemporanei.forEach((ingr, index) => {
+        let tr = document.createElement("tr");
+        // 🔥 NOTA: Cambiati gli onchange in onblur per evitare falsi trigger o loop di render
+        tr.innerHTML = `
+            <td>
+                <input type="text" value="${ingr.nome || ''}" onblur="aggiornaIngredienteDato(${index}, 'nome', this.value)">
+            </td>
+            <td>
+                <input type="number" value="${ingr.grammi || 0}" onblur="aggiornaIngredienteDato(${index}, 'grammi', this.value)">
+            </td>
+            <td>
+                <input type="number" step="0.001" value="${ingr.costo_grammo || 0}" onblur="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)">
+            </td>
+            <td>
+                <button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function aggiungiIngredienteRiga() {
+    ingredientiTemporanei.push({ nome: "Nuovo ingrediente", grammi: 100, costo_grammo: 0.01 });
+    renderTabellaIngredienti();
+}
+
+function aggiornaIngredienteDato(index, campo, valore) {
+    if (ingredientiTemporanei[index]) {
+        let valoreFormattato = campo === 'nome' ? valore : parseFloat(valore) || 0;
+        
+        // Se il dato è identico a prima, non facciamo calcoli inutili
+        if (ingredientiTemporanei[index][campo] === valoreFormattato) return;
+
+        ingredientiTemporanei[index][campo] = valoreFormattato;
+        
+        // Rinfreschiamo la tabella locale per rendere stabili i valori immessi
+        renderTabellaIngredienti();
+    }
+}
+
+function eliminaIngredienteRiga(index) {
+    ingredientiTemporanei.splice(index, 1);
+    renderTabellaIngredienti();
+}
+
+async function salvaRicettaNelDatabase() {
+    let costoTotaleRicetta = 0;
+    ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
+    costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
+
+    let piatto = piatti.find(p => p.id === piattoInModificaId);
+    if (piatto) {
+        piatto.ricetta = JSON.stringify(ingredientiTemporanei);
+        piatto.costo_ieri = piatto.costo_oggi;
+        piatto.costo_oggi = costoTotaleRicetta;
+
+        // Gestione sicura del salvataggio con controllo errori
+        const { error } = await _supabase.from('piatti').update({ 
+            ricetta: piatto.ricetta, 
+            costo_ieri: piatto.costo_ieri, 
+            costo_oggi: piatto.costo_oggi
+        }).eq('id', piattoInModificaId);
+
+        if (error) {
+            console.error("❌ Errore durante il salvataggio su Supabase:", error.message);
+            alert("Impossibile salvare la ricetta nel database: " + error.message);
+        } else {
+            alert("Ricetta salvata e ricalcolata con successo!");
+            chiudiModalRicetta();
+            renderTabella(); // Ricarica la tabella principale con i nuovi costi aggiornati
         }
-
-        function chiudiModalRicetta() {
-            document.getElementById("ricetta-modal").style.display = "none";
-        }
-
-        function renderTabellaIngredienti() {
-            let tbody = document.getElementById("ricetta-body");
-            tbody.innerHTML = "";
-            if (ingredientiTemporanei.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Nessun ingrediente inserito.</td></tr>`;
-                return;
-            }
-            ingredientiTemporanei.forEach((ingr, index) => {
-                let tr = document.createElement("tr");
-                tr.innerHTML = `
-                    <td><input type="text" value="${ingr.nome || ''}" onchange="aggiornaIngredienteDato(${index}, 'nome', this.value)"></td>
-                    <td><input type="number" value="${ingr.grammi || 0}" onchange="aggiornaIngredienteDato(${index}, 'grammi', this.value)"></td>
-                    <td><input type="number" step="0.001" value="${ingr.costo_grammo || 0}" onchange="aggiornaIngredienteDato(${index}, 'costo_grammo', this.value)"></td>
-                    <td><button class="btn btn-danger" onclick="eliminaIngredienteRiga(${index})">Elimina</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function aggiungiIngredienteRiga() {
-            ingredientiTemporanei.push({ nome: "Nuovo ingrediente", grammi: 100, costo_grammo: 0.01 });
-            renderTabellaIngredienti();
-        }
-
-        function aggiornaIngredienteDato(index, campo, valore) {
-            if(ingredientiTemporanei[index]) {
-                ingredientiTemporanei[index][campo] = campo === 'nome' ? valore : parseFloat(valore) || 0;
-            }
-        }
-
-        function eliminaIngredienteRiga(index) {
-            ingredientiTemporanei.splice(index, 1);
-            renderTabellaIngredienti();
-        }
-
-        async function salvaRicettaNelDatabase() {
-            let costoTotaleRicetta = 0;
-            ingredientiTemporanei.forEach(i => costoTotaleRicetta += (i.grammi * i.costo_grammo));
-            costoTotaleRicetta = parseFloat(costoTotaleRicetta.toFixed(2));
-
-            let piatto = piatti.find(p => p.id === piattoInModificaId);
-            if (piatto) {
-                piatto.ricetta = JSON.stringify(ingredientiTemporanei);
-                piatto.costo_ieri = piatto.costo_oggi;
-                piatto.costo_oggi = costoTotaleRicetta;
-
-                await _supabase.from('piatti').update({ 
-                    ricetta: piatto.ricetta, costo_ieri: piatto.costo_ieri, costo_oggi: piatto.costo_oggi
-                }).eq('id', piattoInModificaId);
-
-                alert("Ricetta salvata e ricalcolata!");
-                chiudiModalRicetta();
-                renderTabella();
-            }
-        }
+    }
+}
 
         function convertiInBase64(file) {
             return new Promise((resolve, reject) => {
