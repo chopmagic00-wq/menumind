@@ -897,21 +897,32 @@ async function eliminaRiga(id) {
 // INTERFACCIA E LOGICA DI GESTIONE MODALE RICETTE (LIBRO 📖)
 // ========================================================
 
-function apriModalRicetta(id) {
-    piattoInModificaId = id;
-    let piatto = piatti.find(p => p.id === id);
-    if (!piatto) return;
+function apriModalRicetta(idOriginale) {
+    // 🔥 FORZIAMO L'ID A DIVENTARE UNA STRINGA (Risolve il problema dei piatti reali)
+    const id = String(idOriginale);
     
-    document.getElementById("modal-titolo-piatto").innerText = `Ingredienti & Grammature: ${piatto.nome}`;
-    
-    try {
-        ingredientiTemporanei = piatto.ricetta ? JSON.parse(piatto.ricetta) : [];
-    } catch(e) { 
-        ingredientiTemporanei = []; 
+    console.log("📖 Tento di aprire la ricetta per il piatto con ID:", id);
+
+    // Cerca il piatto nell'array usando l'ID convertito in stringa
+    const piatto = piatti.find(p => String(p.id) === id);
+
+    if (!piatto) {
+        console.error("❌ Piatto non trovato per l'ID:", id);
+        return;
     }
-    
-    renderTabellaIngredienti();
-    document.getElementById("ricetta-modal").style.display = "flex";
+
+    // Mostra la modale (inserisci qui il tuo ID della modale, es. 'modal-ricetta')
+    let modal = document.getElementById("modal-ricetta"); 
+    if (modal) {
+        modal.style.display = "block";
+    }
+
+    // Richiama la funzione che disegna la tabella degli ingredienti dentro la modale
+    if (typeof renderTabellaIngredienti === "function") {
+        renderTabellaIngredienti(piatto);
+    } else {
+        console.warn("⚠️ Funzione renderTabellaIngredienti non trovata");
+    }
 }
 
 function chiudiModalRicetta() {
