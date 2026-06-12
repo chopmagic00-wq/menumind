@@ -734,11 +734,11 @@ function renderTabella() {
             trendIcona = "🔻";
         }
 
-        // COSTRUZIONE SICURA E ISOLATA DELL'HTML
-        // 🔥 MODIFICA CRITICA: Aggiunto display: flex e allineamento per dare spazio reale al libro 📖
+        // COSTRUZIONE STRUTTURALE DELL'HTML
+        // Allineiamo il libro e l'input in un contenitore Flexbox isolato
         tr.innerHTML = `
             <td style="display: flex; align-items: center; gap: 8px;">
-                <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="cursor: pointer; background: transparent; border: none; font-size: 1.2rem; display: inline-block; z-index: 5; position: relative;">📖</button>
+                <button class="btn-ricetta" onclick="apriModalRicetta('${piatto.id}')" style="cursor: pointer; background: transparent; border: none; font-size: 1.2rem; display: inline-block; position: relative; z-index: 10; pointer-events: auto; margin-right: 4px;">📖</button>
                 <input type="text" value="${piatto.nome || ''}" onblur="aggiornaDato('${piatto.id}', 'nome', this.value)" style="border:none; background:transparent; font-weight:500; flex-grow: 1; width: 100%;">
             </td>
             <td>
@@ -761,23 +761,9 @@ function renderTabella() {
         tbody.appendChild(tr);
     });
 
-    // Aggiorna il widget superiore dei guadagni complessivi
+    // Aggiorna automaticamente i contatori in cima alla dashboard
     aggiornaWidgetGuadagno();
 }
-        async function aggiungiRiga() {
-            if (piatti.length > 0 && String(piatti[0].id).startsWith("demo-")) {
-                piatti = [];
-                document.getElementById("welcome-onboarding").style.display = "none";
-            }
-
-            let { data, error } = await _supabase.from('piatti').insert([{
-                user_id: utenteCorrente.id, nome: "Nuovo Piatto", vendita: 10.00, costo_ieri: 0, costo_oggi: 0, ricetta: "[]"
-            }]).select();
-            if (error) return alert(error.message);
-            piatti.push(data[0]);
-            renderTabella();
-        }
-
         async function aggiornaDato(id, campo, valore) {
     // Usiamo == invece di === per evitare bug se uno è numero e l'altro è stringa
     let piatto = piatti.find(p => p.id == id);
