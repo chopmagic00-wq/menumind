@@ -919,29 +919,26 @@ function apriModalRicetta(idOriginale) {
                 document.querySelector(".modal");
     
     if (modal) {
-        // 🛠️ AZZERAMENTO DEL VECCHIO POSIZIONAMENTO (Rimuove il blocco in alto a destra)
-        modal.style.setProperty("right", "auto", "important");
-        modal.style.setProperty("top", "50%", "important");
-        modal.style.setProperty("left", "50%", "important");
-        modal.style.setProperty("margin", "0", "important");
+        // 🎯 MANOVRA FLEXBOX: Trasforma il contenitore in un super-centratore
+        modal.style.setProperty("display", "flex", "important"); // Attiva il Flexbox
+        modal.style.setProperty("justify-content", "center", "important"); // Centra in orizzontale
+        modal.style.setProperty("align-items", "center", "important");     // Centra in verticale
         
-        // 🎯 CENTRAGGIO FORZATO AD ALTA PRIORITÀ
-        modal.style.display = "block";
+        // 🚨 Assicuriamoci che il contenitore occupi TUTTO lo schermo per fare da sfondo
         modal.style.position = "fixed";
-        modal.style.setProperty("transform", "translate(-50%, -50%)", "important");
+        modal.style.top = "0";
+        modal.style.left = "0";
+        modal.style.width = "100vw";
+        modal.style.height = "100vh";
         modal.style.setProperty("z-index", "9999", "important");
         
-        // 🎨 STILE ESTETICO DELLA FINESTRA
-        modal.style.backgroundColor = "#ffffff";
-        modal.style.boxShadow = "0px 10px 40px rgba(0,0,0,0.4)";
-        modal.style.padding = "24px";
-        modal.style.borderRadius = "12px";
-        modal.style.width = "90%";
-        modal.style.maxWidth = "600px"; // Dimensione ottimale per la tabella ingredienti
-        modal.style.maxHeight = "80vh";
-        modal.style.overflowY = "auto";
+        // Opzionale: aggiungiamo un leggero sfondo scuro trasparente dietro la modale per far risaltare la tabella
+        modal.style.backgroundColor = "rgba(0, 0, 0, 0.4)"; 
         
-        console.log("🔓 Modale ricentrata forzatamente.");
+        // Rimuoviamo i vecchi comandi di posizionamento che ora non servono più
+        modal.style.transform = "none";
+        
+        console.log("🔓 Modale impostata su FLEX: la finestrella interna ora DEVE andare al centro.");
     } else {
         console.error("❌ Impossibile trovare la modale nell'HTML.");
         return;
