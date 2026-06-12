@@ -914,34 +914,39 @@ function apriModalRicetta(idOriginale) {
         }
     }
 
-    // 1. Cerchiamo la modale
     let modal = document.getElementById("modal-ricetta") || 
                 document.getElementById("ricetta-modal") || 
                 document.querySelector(".modal");
     
     if (modal) {
-        // 2. 🔥 STILE CSS FORZATO PER CENTRARLA PERFETTAMENTE A SCHERMO 🔥
-        modal.style.display = "block";
-        modal.style.position = "fixed";    // La blocca sullo schermo anche se fai scroll
-        modal.style.top = "50%";           // La sposta a metà altezza
-        modal.style.left = "50%";          // La sposta a metà larghezza
-        modal.style.transform = "translate(-50%, -50%)"; // La centra millimetricamente rispetto a se stessa
-        modal.style.zIndex = "9999";       // La mette sopra la tabella e sopra i widget
-        modal.style.backgroundColor = "#ffffff"; // Sfondo bianco pulito
-        modal.style.boxShadow = "0px 10px 30px rgba(0,0,0,0.3)"; // Un'ombra elegante per staccarla dallo sfondo
-        modal.style.padding = "20px";      // Spazio interno per respirare
-        modal.style.borderRadius = "8px";  // Angoli arrotondati stile moderno
-        modal.style.maxHeight = "85vh";    // Evita che esca dallo schermo se ci sono troppi ingredienti
-        modal.style.overflowY = "auto";    // Se gli ingredienti sono troppi, crea una barra di scorrimento interna
+        // 🛠️ AZZERAMENTO DEL VECCHIO POSIZIONAMENTO (Rimuove il blocco in alto a destra)
+        modal.style.setProperty("right", "auto", "important");
+        modal.style.setProperty("top", "50%", "important");
+        modal.style.setProperty("left", "50%", "important");
+        modal.style.setProperty("margin", "0", "important");
         
-        console.log("🔓 Modale posizionata e centrata con successo.");
+        // 🎯 CENTRAGGIO FORZATO AD ALTA PRIORITÀ
+        modal.style.display = "block";
+        modal.style.position = "fixed";
+        modal.style.setProperty("transform", "translate(-50%, -50%)", "important");
+        modal.style.setProperty("z-index", "9999", "important");
+        
+        // 🎨 STILE ESTETICO DELLA FINESTRA
+        modal.style.backgroundColor = "#ffffff";
+        modal.style.boxShadow = "0px 10px 40px rgba(0,0,0,0.4)";
+        modal.style.padding = "24px";
+        modal.style.borderRadius = "12px";
+        modal.style.width = "90%";
+        modal.style.maxWidth = "600px"; // Dimensione ottimale per la tabella ingredienti
+        modal.style.maxHeight = "80vh";
+        modal.style.overflowY = "auto";
+        
+        console.log("🔓 Modale ricentrata forzatamente.");
     } else {
         console.error("❌ Impossibile trovare la modale nell'HTML.");
-        alert("Interfaccia modale non trovata.");
         return;
     }
 
-    // 3. Disegno degli ingredienti
     if (typeof renderTabellaIngredienti === "function") {
         try {
             renderTabellaIngredienti(piatto);
