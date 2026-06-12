@@ -914,6 +914,10 @@ function apriModalRicetta(idOriginale) {
         }
     }
 
+    // 🎯 AZIONE FONDAMENTALE: Salva l'ID nella variabile globale così il tasto Salva sa cosa aggiornare!
+    piattoInModificaId = piatto.id; 
+    console.log("📌 ID salvato nella variabile globale piattoInModificaId:", piattoInModificaId);
+
     let modal = document.getElementById("modal-ricetta") || 
                 document.getElementById("ricetta-modal") || 
                 document.querySelector(".modal");
